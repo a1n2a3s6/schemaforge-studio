@@ -1,0 +1,3180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SchemaForge Studio — Visual Database Schema & ER Diagram Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================================
+       THEME DESIGN TOKENS (Dark Mode Default + Light Mode)
+       ========================================================================= */
+    :root,
+    html[data-theme="dark"] {
+      --bg-app: #0b0f17;
+      --bg-toolbar: #111827;
+      --bg-sidebar: #111827;
+      --bg-surface: #182234;
+      --bg-surface-hover: #1f2c42;
+      --bg-input: #0d1320;
+      --bg-code: #0a0f1a;
+      --border-subtle: #1f2937;
+      --border-strong: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --grid-dot: rgba(148, 163, 184, 0.18);
+      --table-bg: #131b2b;
+      --table-border: #26334a;
+      --table-row-hover: rgba(56, 189, 248, 0.08);
+      --table-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      --rel-stroke: #64748b;
+      --rel-hover: #38bdf8;
+      --rel-active: #38bdf8;
+      --rel-pill-bg: #182234;
+      --rel-pill-border: #334155;
+      --rel-pill-text: #cbd5e1;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      /* Syntax highlighting */
+      --syn-kw: #c084fc;
+      --syn-type: #38bdf8;
+      --syn-str: #34d399;
+      --syn-num: #fbbf24;
+      --syn-comment: #64748b;
+      --syn-ident: #f8fafc;
+      --syn-attr: #f472b6;
+      --syn-punct: #94a3b8;
+    }
+
+    html[data-theme="light"] {
+      --bg-app: #f1f5f9;
+      --bg-toolbar: #ffffff;
+      --bg-sidebar: #ffffff;
+      --bg-surface: #f8fafc;
+      --bg-surface-hover: #e2e8f0;
+      --bg-input: #ffffff;
+      --bg-code: #f8fafc;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --grid-dot: rgba(15, 23, 42, 0.15);
+      --table-bg: #ffffff;
+      --table-border: #cbd5e1;
+      --table-row-hover: rgba(59, 130, 246, 0.06);
+      --table-shadow: 0 10px 25px -6px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06);
+      --rel-stroke: #94a3b8;
+      --rel-hover: #2563eb;
+      --rel-active: #2563eb;
+      --rel-pill-bg: #ffffff;
+      --rel-pill-border: #cbd5e1;
+      --rel-pill-text: #334155;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      /* Syntax highlighting */
+      --syn-kw: #7c3aed;
+      --syn-type: #0284c7;
+      --syn-str: #059669;
+      --syn-num: #d97706;
+      --syn-comment: #94a3b8;
+      --syn-ident: #0f172a;
+      --syn-attr: #db2777;
+      --syn-punct: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Semantic Utility Classes backed by CSS vars */
+    .sf-toolbar {
+      background-color: var(--bg-toolbar);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .sf-sidebar {
+      background-color: var(--bg-sidebar);
+      border-left: 1px solid var(--border-subtle);
+    }
+    .sf-surface {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+    }
+    .sf-input {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .sf-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+    .sf-btn {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      transition: all 0.15s ease;
+    }
+    .sf-btn:hover:not(:disabled) {
+      background-color: var(--bg-surface-hover);
+      border-color: var(--border-strong);
+    }
+    .sf-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .sf-btn-primary {
+      background-color: var(--accent);
+      border: 1px solid transparent;
+      color: #ffffff;
+      transition: all 0.15s ease;
+    }
+    .sf-btn-primary:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+
+    /* Canvas Grid */
+    #canvas-viewport {
+      background-color: var(--bg-app);
+      background-image: radial-gradient(circle, var(--grid-dot) 1.25px, transparent 1.25px);
+      background-size: 24px 24px;
+      cursor: grab;
+      touch-action: none;
+    }
+    #canvas-viewport.is-panning {
+      cursor: grabbing;
+    }
+    #canvas-viewport.is-connecting {
+      cursor: crosshair;
+    }
+
+    /* Table Nodes */
+    .table-node {
+      position: absolute;
+      width: 272px;
+      background-color: var(--table-bg);
+      border: 1.5px solid var(--table-border);
+      border-radius: 10px;
+      box-shadow: var(--table-shadow);
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      will-change: transform;
+    }
+    .table-node.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), var(--table-shadow);
+      z-index: 30;
+    }
+    .table-node.is-dragging {
+      z-index: 40;
+      box-shadow: 0 20px 44px -10px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(59, 130, 246, 0.45);
+    }
+    .table-header {
+      height: 38px;
+      border-radius: 8px 8px 0 0;
+      cursor: move;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px 0 12px;
+    }
+    .col-row {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      position: relative;
+      border-top: 1px solid var(--border-subtle);
+      transition: background-color 0.12s ease;
+    }
+    .col-row:hover {
+      background-color: var(--table-row-hover);
+    }
+    .col-row.is-drop-target {
+      background-color: rgba(56, 189, 248, 0.22) !important;
+      outline: 1.5px dashed #38bdf8;
+      outline-offset: -2px;
+    }
+
+    /* Connection Port Handles */
+    .port-handle {
+      position: absolute;
+      top: 50%;
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      background-color: var(--table-bg);
+      border: 2px solid var(--accent);
+      transform: translateY(-50%) scale(0.7);
+      opacity: 0;
+      cursor: crosshair;
+      z-index: 10;
+      transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+    }
+    .port-handle.port-left {
+      left: -6px;
+    }
+    .port-handle.port-right {
+      right: -6px;
+    }
+    .col-row:hover .port-handle,
+    #canvas-viewport.is-connecting .port-handle,
+    .port-handle:hover {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    .port-handle:hover {
+      background-color: var(--accent);
+      transform: translateY(-50%) scale(1.25);
+    }
+
+    /* Key Badges */
+    .badge-pk {
+      background: rgba(245, 158, 11, 0.18);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .badge-fk {
+      background: rgba(6, 182, 212, 0.18);
+      color: #06b6d4;
+      border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+    .badge-uq {
+      background: rgba(168, 85, 247, 0.18);
+      color: #a855f7;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .badge-nn {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-secondary);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+    }
+
+    /* SVG Relationship Styling */
+    .rel-group {
+      cursor: pointer;
+    }
+    .rel-path-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 16;
+      pointer-events: stroke;
+    }
+    .rel-path-visible {
+      fill: none;
+      stroke: var(--rel-stroke);
+      stroke-width: 2;
+      transition: stroke 0.15s ease, stroke-width 0.15s ease;
+      pointer-events: none;
+    }
+    .rel-marker-line {
+      fill: none;
+      stroke: var(--rel-stroke);
+      stroke-width: 2;
+      stroke-linecap: round;
+      pointer-events: none;
+      transition: stroke 0.15s ease;
+    }
+    .rel-group:hover .rel-path-visible,
+    .rel-group:hover .rel-marker-line {
+      stroke: var(--rel-hover);
+      stroke-width: 2.5;
+    }
+    .rel-group.is-selected .rel-path-visible,
+    .rel-group.is-selected .rel-marker-line {
+      stroke: var(--rel-active);
+      stroke-width: 2.75;
+    }
+    .rel-pill-rect {
+      fill: var(--rel-pill-bg);
+      stroke: var(--rel-pill-border);
+      stroke-width: 1.25;
+      transition: stroke 0.15s ease, fill 0.15s ease;
+    }
+    .rel-group:hover .rel-pill-rect,
+    .rel-group.is-selected .rel-pill-rect {
+      stroke: var(--rel-active);
+      fill: var(--accent);
+    }
+    .rel-pill-text {
+      fill: var(--rel-pill-text);
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      pointer-events: none;
+    }
+    .rel-group:hover .rel-pill-text,
+    .rel-group.is-selected .rel-pill-text {
+      fill: #ffffff;
+    }
+
+    /* Syntax Highlighting Classes */
+    .syn-kw { color: var(--syn-kw); font-weight: 600; }
+    .syn-type { color: var(--syn-type); }
+    .syn-str { color: var(--syn-str); }
+    .syn-num { color: var(--syn-num); }
+    .syn-comment { color: var(--syn-comment); font-style: italic; }
+    .syn-ident { color: var(--syn-ident); }
+    .syn-attr { color: var(--syn-attr); }
+    .syn-punct { color: var(--syn-punct); }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background-color: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Toast animation */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-enter {
+      animation: toastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen w-screen overflow-hidden">
+
+  <!-- =======================================================================
+       ZONE 1: TOP TOOLBAR
+       ======================================================================= -->
+  <header class="sf-toolbar h-14 px-3 flex items-center justify-between gap-2 shrink-0 z-30">
+    <!-- Left: Logo + Template Switcher -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+          <svg class="w-4.5 h-4.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+            <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"></path>
+            <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"></path>
+          </svg>
+        </div>
+        <div class="hidden sm:flex flex-col leading-tight">
+          <span class="font-bold text-sm tracking-tight">SchemaForge Studio</span>
+          <span class="text-[10px] font-medium" style="color: var(--text-muted);">Visual ER &amp; SQL Designer</span>
+        </div>
+      </div>
+
+      <div class="h-6 w-px mx-0.5 hidden sm:block" style="background: var(--border-subtle);"></div>
+
+      <!-- Template Switcher -->
+      <div class="relative flex items-center">
+        <select id="template-select" title="Switch starter schema template"
+          class="sf-input text-xs font-medium rounded-lg pl-2.5 pr-7 py-1.5 cursor-pointer appearance-none max-w-[165px] sm:max-w-none truncate">
+          <option value="saas">Template: SaaS Auth &amp; Billing</option>
+          <option value="ecommerce">Template: E-Commerce Store</option>
+          <option value="social">Template: Social Media App</option>
+          <option value="blank">Template: Blank Canvas</option>
+        </select>
+        <svg class="w-3.5 h-3.5 pointer-events-none absolute right-2" style="color: var(--text-muted);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Center: Primary Actions -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <button id="btn-add-table" class="sf-btn-primary text-xs font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0" title="Add a new table">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Add Table</span>
+      </button>
+
+      <button id="btn-auto-layout" class="sf-btn text-xs font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0" title="Auto-arrange tables neatly">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+        <span class="hidden md:inline">Auto-Layout</span>
+      </button>
+
+      <button id="btn-import-sql" class="sf-btn text-xs font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0" title="Import SQL DDL">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span class="hidden lg:inline">Import SQL</span>
+      </button>
+
+      <button id="btn-export" class="sf-btn text-xs font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0" title="Export Code, SVG, PNG, or JSON">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        <span class="hidden lg:inline">Export</span>
+      </button>
+
+      <div class="h-5 w-px mx-0.5 shrink-0" style="background: var(--border-subtle);"></div>
+
+      <!-- Undo / Redo -->
+      <div class="flex items-center gap-1 shrink-0">
+        <button id="btn-undo" class="sf-btn p-1.5 rounded-lg" title="Undo (Ctrl+Z)" disabled>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+        </button>
+        <button id="btn-redo" class="sf-btn p-1.5 rounded-lg" title="Redo (Ctrl+Y)" disabled>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Zoom + Theme + Sidebar Toggle -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <div class="hidden sm:flex items-center rounded-lg p-0.5" style="background: var(--bg-surface); border: 1px solid var(--border-subtle);">
+        <button id="btn-zoom-out" class="px-2 py-1 text-xs font-semibold rounded-md hover:opacity-80" title="Zoom Out">−</button>
+        <span id="zoom-label" class="px-1.5 text-[11px] font-mono-code font-medium min-w-[44px] text-center" style="color: var(--text-secondary);">100%</span>
+        <button id="btn-zoom-in" class="px-2 py-1 text-xs font-semibold rounded-md hover:opacity-80" title="Zoom In">+</button>
+        <div class="h-3.5 w-px mx-0.5" style="background: var(--border-strong);"></div>
+        <button id="btn-zoom-fit" class="px-2 py-1 text-[11px] font-medium rounded-md hover:opacity-80" title="Fit diagram to viewport">Fit</button>
+      </div>
+
+      <button id="btn-theme-toggle" class="sf-btn p-1.5 rounded-lg" title="Toggle Dark / Light Theme">
+        <!-- Sun Icon (shown in dark mode) -->
+        <svg id="icon-sun" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <!-- Moon Icon (shown in light mode) -->
+        <svg id="icon-moon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+
+      <button id="btn-toggle-sidebar" class="sf-btn p-1.5 rounded-lg" title="Toggle Inspector & Code Sidebar">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- =======================================================================
+       MAIN WORKSPACE (CANVAS + RIGHT SIDEBAR)
+       ======================================================================= -->
+  <div class="flex flex-1 min-h-0 relative overflow-hidden">
+
+    <!-- =====================================================================
+         ZONE 2: INFINITE INTERACTIVE CANVAS
+         ===================================================================== -->
+    <main id="canvas-viewport" class="flex-1 relative overflow-hidden">
+      <!-- Transformed World Container -->
+      <div id="canvas-world" class="absolute top-0 left-0 origin-top-left" style="width: 1px; height: 1px;">
+        <!-- SVG Bezier Relationships Layer -->
+        <svg id="relations-svg" class="absolute top-0 left-0 overflow-visible" width="1" height="1" style="z-index: 10;">
+          <g id="relations-layer"></g>
+          <path id="drag-connect-preview" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" class="hidden" style="pointer-events: none;" />
+        </svg>
+        <!-- Table Cards Layer -->
+        <div id="tables-layer" class="absolute top-0 left-0" style="z-index: 20;"></div>
+      </div>
+
+      <!-- Floating Relationship Quick-Action Popover -->
+      <div id="rel-popover" class="hidden absolute z-40 rounded-xl shadow-2xl p-2 flex items-center gap-1.5"
+        style="background: var(--bg-toolbar); border: 1px solid var(--border-strong);">
+        <span class="text-[11px] font-semibold px-1.5" style="color: var(--text-secondary);">Cardinality:</span>
+        <button data-card="1:1" class="rel-pop-card px-2 py-1 text-xs font-mono-code font-semibold rounded-md sf-btn">1:1</button>
+        <button data-card="1:N" class="rel-pop-card px-2 py-1 text-xs font-mono-code font-semibold rounded-md sf-btn">1:N</button>
+        <button data-card="N:M" class="rel-pop-card px-2 py-1 text-xs font-mono-code font-semibold rounded-md sf-btn">N:M</button>
+        <div class="h-4 w-px mx-0.5" style="background: var(--border-strong);"></div>
+        <button id="rel-pop-delete" class="p-1.5 rounded-md text-red-400 hover:bg-red-500/15 transition" title="Delete Relationship">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+        </button>
+      </div>
+
+      <!-- Bottom-Left Hint & Status Pill -->
+      <div class="absolute bottom-3 left-3 z-30 pointer-events-none flex items-center gap-2">
+        <div class="px-3 py-1.5 rounded-lg text-[11px] flex items-center gap-2.5 shadow-lg backdrop-blur-md"
+          style="background: color-mix(in srgb, var(--bg-toolbar) 86%, transparent); border: 1px solid var(--border-subtle); color: var(--text-secondary);">
+          <span id="canvas-stats" class="font-semibold" style="color: var(--text-primary);">0 tables • 0 relations</span>
+          <span class="hidden md:inline opacity-40">|</span>
+          <span class="hidden md:inline">Drag canvas to pan • Scroll to zoom • Drag column ports to connect</span>
+        </div>
+      </div>
+
+      <!-- Mobile Zoom Controls (shown on small screens) -->
+      <div class="sm:hidden absolute bottom-3 right-3 z-30 flex items-center gap-1 rounded-lg p-1 shadow-lg"
+        style="background: var(--bg-toolbar); border: 1px solid var(--border-subtle);">
+        <button id="btn-zoom-out-m" class="px-2 py-1 text-xs font-bold rounded">−</button>
+        <button id="btn-zoom-fit-m" class="px-2 py-1 text-xs font-medium rounded">Fit</button>
+        <button id="btn-zoom-in-m" class="px-2 py-1 text-xs font-bold rounded">+</button>
+      </div>
+    </main>
+
+    <!-- =====================================================================
+         ZONE 3: RIGHT COLLAPSIBLE INSPECTOR & LIVE CODE SIDEBAR
+         ===================================================================== -->
+    <aside id="right-sidebar" class="sf-sidebar w-full sm:w-[390px] lg:w-[420px] shrink-0 flex flex-col z-30 transition-all duration-200 absolute sm:relative right-0 top-0 bottom-0">
+      <!-- Sidebar Tabs Header -->
+      <div class="flex items-center border-b px-2 pt-2 gap-1 shrink-0" style="border-color: var(--border-subtle);">
+        <button id="tab-editor" class="flex-1 py-2 px-3 text-xs font-semibold rounded-t-lg border-b-2 transition flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          <span>Table Editor</span>
+        </button>
+        <button id="tab-code" class="flex-1 py-2 px-3 text-xs font-semibold rounded-t-lg border-b-2 transition flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          <span>Live Code</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: TABLE EDITOR -->
+      <div id="panel-editor" class="flex-1 overflow-y-auto p-3.5 space-y-4"></div>
+
+      <!-- TAB 2: LIVE CODE -->
+      <div id="panel-code" class="hidden flex-1 flex flex-col min-h-0">
+        <!-- Dialect Switcher & Actions -->
+        <div class="p-3 border-b space-y-2.5 shrink-0" style="border-color: var(--border-subtle);">
+          <div class="grid grid-cols-4 gap-1 p-1 rounded-lg" style="background: var(--bg-input); border: 1px solid var(--border-subtle);">
+            <button data-dialect="postgres" class="dialect-btn py-1.5 text-[11px] font-semibold rounded-md transition">PostgreSQL</button>
+            <button data-dialect="mysql" class="dialect-btn py-1.5 text-[11px] font-semibold rounded-md transition">MySQL</button>
+            <button data-dialect="sqlite" class="dialect-btn py-1.5 text-[11px] font-semibold rounded-md transition">SQLite</button>
+            <button data-dialect="prisma" class="dialect-btn py-1.5 text-[11px] font-semibold rounded-md transition">Prisma</button>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="code-filename" class="text-[11px] font-mono-code font-medium" style="color: var(--text-muted);">schema.postgres.sql</span>
+            <div class="flex items-center gap-1.5">
+              <button id="btn-copy-code" class="sf-btn text-xs font-medium px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy</span>
+              </button>
+              <button id="btn-download-code" class="sf-btn-primary text-xs font-medium px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Syntax-Highlighted Code View -->
+        <div class="flex-1 overflow-auto p-3.5 font-mono-code text-xs leading-relaxed select-text" style="background: var(--bg-code);">
+          <pre id="live-code-output" class="m-0 whitespace-pre"></pre>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- =======================================================================
+       MODAL: IMPORT SQL
+       ======================================================================= -->
+  <div id="modal-import-sql" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]"
+      style="background: var(--bg-toolbar); border: 1px solid var(--border-strong);">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between" style="border-color: var(--border-subtle);">
+        <div>
+          <h2 class="text-sm font-bold">Import SQL DDL</h2>
+          <p class="text-xs mt-0.5" style="color: var(--text-secondary);">Paste standard <code class="font-mono-code">CREATE TABLE</code> statements (PostgreSQL, MySQL, or SQLite) to generate a visual diagram.</p>
+        </div>
+        <button data-close-modal="modal-import-sql" class="sf-btn p-1.5 rounded-lg">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="p-5 flex-1 flex flex-col gap-3 min-h-0">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold" style="color: var(--text-secondary);">SQL DDL Input</span>
+          <button id="btn-load-example-sql" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition">Load Example SQL</button>
+        </div>
+        <textarea id="import-sql-textarea" rows="13" spellcheck="false" placeholder="CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);"
+          class="sf-input w-full rounded-xl p-3 font-mono-code text-xs leading-relaxed resize-none select-text"></textarea>
+        <div id="import-sql-error" class="hidden text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2"></div>
+      </div>
+      <div class="px-5 py-3.5 border-t flex items-center justify-end gap-2" style="border-color: var(--border-subtle);">
+        <button data-close-modal="modal-import-sql" class="sf-btn text-xs font-medium px-3.5 py-2 rounded-lg">Cancel</button>
+        <button id="btn-confirm-import-sql" class="sf-btn-primary text-xs font-semibold px-4 py-2 rounded-lg">Parse &amp; Generate Diagram</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL: EXPORT / IMPORT JSON, SVG, PNG, CODE
+       ======================================================================= -->
+  <div id="modal-export" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+      style="background: var(--bg-toolbar); border: 1px solid var(--border-strong);">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between" style="border-color: var(--border-subtle);">
+        <div>
+          <h2 class="text-sm font-bold">Export &amp; Project Backup</h2>
+          <p class="text-xs mt-0.5" style="color: var(--text-secondary);">Download vector/raster images, schema code, or save/restore your project JSON.</p>
+        </div>
+        <button data-close-modal="modal-export" class="sf-btn p-1.5 rounded-lg">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-5">
+        <!-- Diagram Image Export -->
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider mb-2.5" style="color: var(--text-muted);">Diagram Image</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button id="btn-export-png" class="sf-btn p-3.5 rounded-xl text-left flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </div>
+              <div>
+                <div class="text-xs font-bold">High-Res PNG</div>
+                <div class="text-[11px] mt-0.5" style="color: var(--text-secondary);">2x HiDPI raster image for docs &amp; slides</div>
+              </div>
+            </button>
+            <button id="btn-export-svg" class="sf-btn p-3.5 rounded-xl text-left flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              </div>
+              <div>
+                <div class="text-xs font-bold">SVG Vector</div>
+                <div class="text-[11px] mt-0.5" style="color: var(--text-secondary);">Crisp scalable vector diagram</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Project JSON -->
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider mb-2.5" style="color: var(--text-muted);">Project File (JSON)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button id="btn-export-json" class="sf-btn p-3.5 rounded-xl text-left flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </div>
+              <div>
+                <div class="text-xs font-bold">Export JSON</div>
+                <div class="text-[11px] mt-0.5" style="color: var(--text-secondary);">Save tables, positions &amp; relations</div>
+              </div>
+            </button>
+            <label class="sf-btn p-3.5 rounded-xl text-left flex items-start gap-3 cursor-pointer">
+              <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
+              <div class="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </div>
+              <div>
+                <div class="text-xs font-bold">Import JSON</div>
+                <div class="text-[11px] mt-0.5" style="color: var(--text-secondary);">Restore a saved SchemaForge project</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Direct Code Download -->
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider mb-2.5" style="color: var(--text-muted);">Schema Code Export</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button data-export-dialect="postgres" class="sf-btn py-2 px-3 rounded-lg text-xs font-semibold text-center">PostgreSQL</button>
+            <button data-export-dialect="mysql" class="sf-btn py-2 px-3 rounded-lg text-xs font-semibold text-center">MySQL</button>
+            <button data-export-dialect="sqlite" class="sf-btn py-2 px-3 rounded-lg text-xs font-semibold text-center">SQLite</button>
+            <button data-export-dialect="prisma" class="sf-btn py-2 px-3 rounded-lg text-xs font-semibold text-center">Prisma</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 border-t flex justify-end" style="border-color: var(--border-subtle);">
+        <button data-close-modal="modal-export" class="sf-btn text-xs font-medium px-4 py-1.5 rounded-lg">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- =======================================================================
+       APPLICATION JAVASCRIPT (Modular Vanilla JS)
+       ======================================================================= -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* =====================================================================
+         1. CONSTANTS & CONFIGURATION
+         ===================================================================== */
+      const STORAGE_KEY = 'schemaforge_studio_v1';
+      const MAX_HISTORY = 30;
+      const TABLE_WIDTH = 272;
+      const HEADER_HEIGHT = 38;
+      const ROW_HEIGHT = 32;
+
+      const DATA_TYPES = [
+        'UUID', 'INT', 'VARCHAR', 'TEXT', 'BOOLEAN', 'TIMESTAMP', 'JSONB', 'DECIMAL'
+      ];
+
+      const TABLE_COLORS = [
+        '#3b82f6', // Blue
+        '#8b5cf6', // Violet
+        '#06b6d4', // Cyan
+        '#10b981', // Emerald
+        '#f59e0b', // Amber
+        '#ec4899', // Pink
+        '#ef4444', // Red
+        '#6366f1'  // Indigo
+      ];
+
+      const CARDINALITIES = ['1:N', '1:1', 'N:M'];
+
+      const uid = (prefix = 'id') => `${prefix}_${Math.random().toString(36).slice(2, 9)}${Date.now().toString(36).slice(-3)}`;
+
+      /* =====================================================================
+         2. STARTER TEMPLATES
+         ===================================================================== */
+      function buildTemplates() {
+        return {
+          saas: {
+            name: 'SaaS Auth & Billing',
+            tables: [
+              {
+                id: 'tbl_orgs', name: 'organizations', color: '#3b82f6', x: 80, y: 120,
+                columns: [
+                  { id: 'c_org_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+                  { id: 'c_org_name', name: 'name', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'c_org_slug', name: 'slug', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'c_org_plan', name: 'plan_tier', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: "'starter'" },
+                  { id: 'c_org_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'tbl_users', name: 'users', color: '#8b5cf6', x: 80, y: 410,
+                columns: [
+                  { id: 'c_usr_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+                  { id: 'c_usr_email', name: 'email', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'c_usr_hash', name: 'password_hash', type: 'TEXT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'c_usr_name', name: 'full_name', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: false, isUnique: false, defaultValue: '' },
+                  { id: 'c_usr_verified', name: 'is_verified', type: 'BOOLEAN', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'false' },
+                  { id: 'c_usr_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'tbl_memberships', name: 'memberships', color: '#06b6d4', x: 470, y: 310,
+                columns: [
+                  { id: 'c_mem_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+                  { id: 'c_mem_org', name: 'organization_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'c_mem_usr', name: 'user_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'c_mem_role', name: 'role', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: "'member'" },
+                  { id: 'c_mem_joined', name: 'joined_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'tbl_subs', name: 'subscriptions', color: '#10b981', x: 470, y: 60,
+                columns: [
+                  { id: 'c_sub_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+                  { id: 'c_sub_org', name: 'organization_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'c_sub_stripe', name: 'stripe_sub_id', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'c_sub_status', name: 'status', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: "'active'" },
+                  { id: 'c_sub_seats', name: 'seat_limit', type: 'INT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '5' },
+                  { id: 'c_sub_end', name: 'current_period_end', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' }
+                ]
+              },
+              {
+                id: 'tbl_invoices', name: 'invoices', color: '#f59e0b', x: 860, y: 120,
+                columns: [
+                  { id: 'c_inv_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+                  { id: 'c_inv_sub', name: 'subscription_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'c_inv_amt', name: 'amount_due', type: 'DECIMAL', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '0.00' },
+                  { id: 'c_inv_paid', name: 'is_paid', type: 'BOOLEAN', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'false' },
+                  { id: 'c_inv_meta', name: 'metadata', type: 'JSONB', isPK: false, isFK: false, isNotNull: false, isUnique: false, defaultValue: '' },
+                  { id: 'c_inv_issued', name: 'issued_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              }
+            ],
+            relations: [
+              { id: 'rel_1', sourceTableId: 'tbl_memberships', sourceColumnId: 'c_mem_org', targetTableId: 'tbl_orgs', targetColumnId: 'c_org_id', cardinality: '1:N' },
+              { id: 'rel_2', sourceTableId: 'tbl_memberships', sourceColumnId: 'c_mem_usr', targetTableId: 'tbl_users', targetColumnId: 'c_usr_id', cardinality: '1:N' },
+              { id: 'rel_3', sourceTableId: 'tbl_subs', sourceColumnId: 'c_sub_org', targetTableId: 'tbl_orgs', targetColumnId: 'c_org_id', cardinality: '1:1' },
+              { id: 'rel_4', sourceTableId: 'tbl_invoices', sourceColumnId: 'c_inv_sub', targetTableId: 'tbl_subs', targetColumnId: 'c_sub_id', cardinality: '1:N' }
+            ]
+          },
+
+          ecommerce: {
+            name: 'E-Commerce Store',
+            tables: [
+              {
+                id: 'ec_cust', name: 'customers', color: '#3b82f6', x: 80, y: 100,
+                columns: [
+                  { id: 'ec_c_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_c_email', name: 'email', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_c_name', name: 'full_name', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_c_addr', name: 'shipping_address', type: 'JSONB', isPK: false, isFK: false, isNotNull: false, isUnique: false, defaultValue: '' }
+                ]
+              },
+              {
+                id: 'ec_cat', name: 'categories', color: '#8b5cf6', x: 80, y: 370,
+                columns: [
+                  { id: 'ec_cat_id', name: 'id', type: 'INT', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_cat_name', name: 'name', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_cat_slug', name: 'slug', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' }
+                ]
+              },
+              {
+                id: 'ec_prod', name: 'products', color: '#10b981', x: 460, y: 350,
+                columns: [
+                  { id: 'ec_p_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_p_cat', name: 'category_id', type: 'INT', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_p_sku', name: 'sku', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_p_title', name: 'title', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_p_price', name: 'price', type: 'DECIMAL', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '0.00' },
+                  { id: 'ec_p_stock', name: 'stock_qty', type: 'INT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '0' }
+                ]
+              },
+              {
+                id: 'ec_ord', name: 'orders', color: '#f59e0b', x: 460, y: 80,
+                columns: [
+                  { id: 'ec_o_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_o_cust', name: 'customer_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_o_status', name: 'status', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: "'pending'" },
+                  { id: 'ec_o_total', name: 'total_amount', type: 'DECIMAL', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '0.00' },
+                  { id: 'ec_o_created', name: 'ordered_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'ec_items', name: 'order_items', color: '#ec4899', x: 840, y: 200,
+                columns: [
+                  { id: 'ec_i_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'ec_i_ord', name: 'order_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_i_prod', name: 'product_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'ec_i_qty', name: 'quantity', type: 'INT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '1' },
+                  { id: 'ec_i_unit', name: 'unit_price', type: 'DECIMAL', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '0.00' }
+                ]
+              }
+            ],
+            relations: [
+              { id: 'ec_r1', sourceTableId: 'ec_prod', sourceColumnId: 'ec_p_cat', targetTableId: 'ec_cat', targetColumnId: 'ec_cat_id', cardinality: '1:N' },
+              { id: 'ec_r2', sourceTableId: 'ec_ord', sourceColumnId: 'ec_o_cust', targetTableId: 'ec_cust', targetColumnId: 'ec_c_id', cardinality: '1:N' },
+              { id: 'ec_r3', sourceTableId: 'ec_items', sourceColumnId: 'ec_i_ord', targetTableId: 'ec_ord', targetColumnId: 'ec_o_id', cardinality: '1:N' },
+              { id: 'ec_r4', sourceTableId: 'ec_items', sourceColumnId: 'ec_i_prod', targetTableId: 'ec_prod', targetColumnId: 'ec_p_id', cardinality: '1:N' }
+            ]
+          },
+
+          social: {
+            name: 'Social Media App',
+            tables: [
+              {
+                id: 'sm_users', name: 'users', color: '#3b82f6', x: 80, y: 210,
+                columns: [
+                  { id: 'sm_u_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_u_handle', name: 'username', type: 'VARCHAR', isPK: false, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_u_bio', name: 'bio', type: 'TEXT', isPK: false, isFK: false, isNotNull: false, isUnique: false, defaultValue: '' },
+                  { id: 'sm_u_verified', name: 'is_verified', type: 'BOOLEAN', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'false' },
+                  { id: 'sm_u_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'sm_posts', name: 'posts', color: '#8b5cf6', x: 460, y: 80,
+                columns: [
+                  { id: 'sm_p_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_p_author', name: 'author_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_p_body', name: 'content', type: 'TEXT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_p_media', name: 'media_urls', type: 'JSONB', isPK: false, isFK: false, isNotNull: false, isUnique: false, defaultValue: '' },
+                  { id: 'sm_p_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'sm_comments', name: 'comments', color: '#06b6d4', x: 840, y: 80,
+                columns: [
+                  { id: 'sm_c_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_c_post', name: 'post_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_c_usr', name: 'user_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_c_body', name: 'body', type: 'TEXT', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_c_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'sm_likes', name: 'likes', color: '#ec4899', x: 840, y: 340,
+                columns: [
+                  { id: 'sm_l_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_l_post', name: 'post_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_l_usr', name: 'user_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_l_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              },
+              {
+                id: 'sm_follows', name: 'follows', color: '#10b981', x: 460, y: 360,
+                columns: [
+                  { id: 'sm_f_id', name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: '' },
+                  { id: 'sm_f_follower', name: 'follower_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_f_following', name: 'following_id', type: 'UUID', isPK: false, isFK: true, isNotNull: true, isUnique: false, defaultValue: '' },
+                  { id: 'sm_f_created', name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+                ]
+              }
+            ],
+            relations: [
+              { id: 'sm_r1', sourceTableId: 'sm_posts', sourceColumnId: 'sm_p_author', targetTableId: 'sm_users', targetColumnId: 'sm_u_id', cardinality: '1:N' },
+              { id: 'sm_r2', sourceTableId: 'sm_comments', sourceColumnId: 'sm_c_post', targetTableId: 'sm_posts', targetColumnId: 'sm_p_id', cardinality: '1:N' },
+              { id: 'sm_r3', sourceTableId: 'sm_comments', sourceColumnId: 'sm_c_usr', targetTableId: 'sm_users', targetColumnId: 'sm_u_id', cardinality: '1:N' },
+              { id: 'sm_r4', sourceTableId: 'sm_likes', sourceColumnId: 'sm_l_post', targetTableId: 'sm_posts', targetColumnId: 'sm_p_id', cardinality: '1:N' },
+              { id: 'sm_r5', sourceTableId: 'sm_likes', sourceColumnId: 'sm_l_usr', targetTableId: 'sm_users', targetColumnId: 'sm_u_id', cardinality: '1:N' },
+              { id: 'sm_r6', sourceTableId: 'sm_follows', sourceColumnId: 'sm_f_follower', targetTableId: 'sm_users', targetColumnId: 'sm_u_id', cardinality: 'N:M' }
+            ]
+          },
+
+          blank: {
+            name: 'Blank Canvas',
+            tables: [],
+            relations: []
+          }
+        };
+      }
+
+      /* =====================================================================
+         3. APPLICATION STATE & HISTORY
+         ===================================================================== */
+      const state = {
+        tables: [],
+        relations: [],
+        selectedTableId: null,
+        selectedRelationId: null,
+        viewport: { x: 40, y: 40, zoom: 1 },
+        theme: 'dark',
+        activeTab: 'editor',
+        dialect: 'postgres',
+        sidebarOpen: true,
+        currentTemplate: 'saas'
+      };
+
+      const history = {
+        stack: [],
+        index: -1
+      };
+
+      // Interaction runtime state
+      const interaction = {
+        isPanning: false,
+        spacePressed: false,
+        panStartX: 0,
+        panStartY: 0,
+        vpStartX: 0,
+        vpStartY: 0,
+
+        draggingTableId: null,
+        dragMoved: false,
+        dragStartMouseX: 0,
+        dragStartMouseY: 0,
+        dragStartTableX: 0,
+        dragStartTableY: 0,
+
+        connecting: null // { sourceTableId, sourceColumnId, side, startX, startY, curX, curY }
+      };
+
+      /* =====================================================================
+         4. DOM REFERENCES
+         ===================================================================== */
+      const dom = {
+        viewport: document.getElementById('canvas-viewport'),
+        world: document.getElementById('canvas-world'),
+        tablesLayer: document.getElementById('tables-layer'),
+        relationsLayer: document.getElementById('relations-layer'),
+        dragPreview: document.getElementById('drag-connect-preview'),
+        relPopover: document.getElementById('rel-popover'),
+        relPopDelete: document.getElementById('rel-pop-delete'),
+        canvasStats: document.getElementById('canvas-stats'),
+
+        templateSelect: document.getElementById('template-select'),
+        btnAddTable: document.getElementById('btn-add-table'),
+        btnAutoLayout: document.getElementById('btn-auto-layout'),
+        btnImportSql: document.getElementById('btn-import-sql'),
+        btnExport: document.getElementById('btn-export'),
+        btnUndo: document.getElementById('btn-undo'),
+        btnRedo: document.getElementById('btn-redo'),
+        btnZoomOut: document.getElementById('btn-zoom-out'),
+        btnZoomIn: document.getElementById('btn-zoom-in'),
+        btnZoomFit: document.getElementById('btn-zoom-fit'),
+        btnZoomOutM: document.getElementById('btn-zoom-out-m'),
+        btnZoomInM: document.getElementById('btn-zoom-in-m'),
+        btnZoomFitM: document.getElementById('btn-zoom-fit-m'),
+        zoomLabel: document.getElementById('zoom-label'),
+        btnTheme: document.getElementById('btn-theme-toggle'),
+        iconSun: document.getElementById('icon-sun'),
+        iconMoon: document.getElementById('icon-moon'),
+        btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+
+        sidebar: document.getElementById('right-sidebar'),
+        tabEditor: document.getElementById('tab-editor'),
+        tabCode: document.getElementById('tab-code'),
+        panelEditor: document.getElementById('panel-editor'),
+        panelCode: document.getElementById('panel-code'),
+        codeFilename: document.getElementById('code-filename'),
+        liveCodeOutput: document.getElementById('live-code-output'),
+        btnCopyCode: document.getElementById('btn-copy-code'),
+        btnDownloadCode: document.getElementById('btn-download-code'),
+
+        modalImportSql: document.getElementById('modal-import-sql'),
+        importSqlTextarea: document.getElementById('import-sql-textarea'),
+        importSqlError: document.getElementById('import-sql-error'),
+        btnLoadExampleSql: document.getElementById('btn-load-example-sql'),
+        btnConfirmImportSql: document.getElementById('btn-confirm-import-sql'),
+
+        modalExport: document.getElementById('modal-export'),
+        btnExportPng: document.getElementById('btn-export-png'),
+        btnExportSvg: document.getElementById('btn-export-svg'),
+        btnExportJson: document.getElementById('btn-export-json'),
+        inputImportJson: document.getElementById('input-import-json'),
+
+        toastContainer: document.getElementById('toast-container')
+      };
+
+      /* =====================================================================
+         5. UTILITIES (Toast, Clipboard, File Download, Escaping)
+         ===================================================================== */
+      function showToast(message, type = 'info') {
+        const colors = {
+          info: 'border-blue-500/40 text-blue-300',
+          success: 'border-emerald-500/40 text-emerald-300',
+          error: 'border-red-500/40 text-red-300'
+        };
+        const dotColors = {
+          info: 'bg-blue-400',
+          success: 'bg-emerald-400',
+          error: 'bg-red-400'
+        };
+        const toast = document.createElement('div');
+        toast.className = `toast-enter pointer-events-auto px-3.5 py-2.5 rounded-xl shadow-xl border text-xs font-medium flex items-center gap-2 ${colors[type] || colors.info}`;
+        toast.style.backgroundColor = 'var(--bg-toolbar)';
+        toast.innerHTML = `<span class="w-2 h-2 rounded-full ${dotColors[type] || dotColors.info}"></span><span style="color: var(--text-primary);">${escapeHtml(message)}</span>`;
+        dom.toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(6px)';
+          toast.style.transition = 'all 0.2s ease';
+          setTimeout(() => toast.remove(), 220);
+        }, 2600);
+      }
+
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function copyToClipboard(text) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (ok) {
+            showToast('Copied to clipboard', 'success');
+            return;
+          }
+        } catch (err) {
+          // fallback below
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text)
+            .then(() => showToast('Copied to clipboard', 'success'))
+            .catch(() => showToast('Unable to copy to clipboard', 'error'));
+        }
+      }
+
+      function downloadFile(content, filename, mimeType = 'text/plain;charset=utf-8') {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      /* =====================================================================
+         6. PERSISTENCE & UNDO/REDO HISTORY
+         ===================================================================== */
+      function saveToStorage() {
+        try {
+          const payload = {
+            tables: state.tables,
+            relations: state.relations,
+            theme: state.theme,
+            dialect: state.dialect,
+            currentTemplate: state.currentTemplate
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch (e) {
+          // Ignore quota or privacy errors
+        }
+      }
+
+      function loadFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.tables) && Array.isArray(parsed.relations)) {
+            state.tables = parsed.tables;
+            state.relations = parsed.relations;
+            if (parsed.theme === 'light' || parsed.theme === 'dark') state.theme = parsed.theme;
+            if (parsed.dialect) state.dialect = parsed.dialect;
+            if (parsed.currentTemplate) state.currentTemplate = parsed.currentTemplate;
+            return true;
+          }
+        } catch (e) {
+          // Fallback to default template
+        }
+        return false;
+      }
+
+      function pushHistory() {
+        const snapshot = JSON.stringify({
+          tables: state.tables,
+          relations: state.relations
+        });
+        // Avoid pushing identical consecutive snapshots
+        if (history.index >= 0 && history.stack[history.index] === snapshot) {
+          saveToStorage();
+          return;
+        }
+        history.stack = history.stack.slice(0, history.index + 1);
+        history.stack.push(snapshot);
+        if (history.stack.length > MAX_HISTORY) {
+          history.stack.shift();
+        } else {
+          history.index++;
+        }
+        updateHistoryButtons();
+        saveToStorage();
+      }
+
+      function undo() {
+        if (history.index <= 0) return;
+        history.index--;
+        restoreSnapshot(history.stack[history.index]);
+        showToast('Undid last change');
+      }
+
+      function redo() {
+        if (history.index >= history.stack.length - 1) return;
+        history.index++;
+        restoreSnapshot(history.stack[history.index]);
+        showToast('Redid change');
+      }
+
+      function restoreSnapshot(snapshotStr) {
+        const snap = JSON.parse(snapshotStr);
+        state.tables = snap.tables;
+        state.relations = snap.relations;
+        // Clear dangling selections
+        if (state.selectedTableId && !getTable(state.selectedTableId)) state.selectedTableId = null;
+        if (state.selectedRelationId && !getRelation(state.selectedRelationId)) state.selectedRelationId = null;
+        updateHistoryButtons();
+        saveToStorage();
+        renderAll();
+      }
+
+      function updateHistoryButtons() {
+        dom.btnUndo.disabled = history.index <= 0;
+        dom.btnRedo.disabled = history.index >= history.stack.length - 1;
+      }
+
+      /* =====================================================================
+         7. DATA HELPERS
+         ===================================================================== */
+      function getTable(id) {
+        return state.tables.find(t => t.id === id) || null;
+      }
+
+      function getColumn(tableId, colId) {
+        const t = getTable(tableId);
+        return t ? t.columns.find(c => c.id === colId) || null : null;
+      }
+
+      function getRelation(id) {
+        return state.relations.find(r => r.id === id) || null;
+      }
+
+      function getRelationForColumn(tableId, colId) {
+        return state.relations.find(r => r.sourceTableId === tableId && r.sourceColumnId === colId) || null;
+      }
+
+      function syncFKFlags() {
+        const fkSet = new Set(state.relations.map(r => `${r.sourceTableId}::${r.sourceColumnId}`));
+        state.tables.forEach(t => {
+          t.columns.forEach(c => {
+            if (fkSet.has(`${t.id}::${c.id}`)) {
+              c.isFK = true;
+            }
+          });
+        });
+      }
+
+      function screenToWorld(clientX, clientY) {
+        const rect = dom.viewport.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left - state.viewport.x) / state.viewport.zoom,
+          y: (clientY - rect.top - state.viewport.y) / state.viewport.zoom
+        };
+      }
+
+      function worldToScreen(wx, wy) {
+        return {
+          x: wx * state.viewport.zoom + state.viewport.x,
+          y: wy * state.viewport.zoom + state.viewport.y
+        };
+      }
+
+      /* =====================================================================
+         8. VIEWPORT PAN / ZOOM / FIT
+         ===================================================================== */
+      function applyViewportTransform() {
+        const { x, y, zoom } = state.viewport;
+        dom.world.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+        const gridSize = 24 * zoom;
+        dom.viewport.style.backgroundSize = `${gridSize}px ${gridSize}px`;
+        dom.viewport.style.backgroundPosition = `${x}px ${y}px`;
+        dom.zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+        positionRelationPopover();
+      }
+
+      function zoomAt(deltaFactor, clientX, clientY) {
+        const rect = dom.viewport.getBoundingClientRect();
+        const cx = clientX !== undefined ? clientX - rect.left : rect.width / 2;
+        const cy = clientY !== undefined ? clientY - rect.top : rect.height / 2;
+        const oldZoom = state.viewport.zoom;
+        const newZoom = Math.min(2.2, Math.max(0.25, oldZoom * deltaFactor));
+        const ratio = newZoom / oldZoom;
+        state.viewport.x = cx - (cx - state.viewport.x) * ratio;
+        state.viewport.y = cy - (cy - state.viewport.y) * ratio;
+        state.viewport.zoom = newZoom;
+        applyViewportTransform();
+      }
+
+      function fitToViewport(padding = 70) {
+        const rect = dom.viewport.getBoundingClientRect();
+        if (!state.tables.length || rect.width === 0 || rect.height === 0) {
+          state.viewport = { x: 40, y: 40, zoom: 1 };
+          applyViewportTransform();
+          return;
+        }
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        state.tables.forEach(t => {
+          const h = HEADER_HEIGHT + t.columns.length * ROW_HEIGHT + 8;
+          minX = Math.min(minX, t.x);
+          minY = Math.min(minY, t.y);
+          maxX = Math.max(maxX, t.x + TABLE_WIDTH);
+          maxY = Math.max(maxY, t.y + h);
+        });
+        const contentW = Math.max(100, maxX - minX);
+        const contentH = Math.max(100, maxY - minY);
+        const zoomX = (rect.width - padding * 2) / contentW;
+        const zoomY = (rect.height - padding * 2) / contentH;
+        const zoom = Math.min(1.15, Math.max(0.3, Math.min(zoomX, zoomY)));
+        const x = (rect.width - contentW * zoom) / 2 - minX * zoom;
+        const y = (rect.height - contentH * zoom) / 2 - minY * zoom;
+        state.viewport = { x, y, zoom };
+        applyViewportTransform();
+      }
+
+      /* =====================================================================
+         9. AUTO-LAYOUT ENGINE (Layered Topological Grid)
+         ===================================================================== */
+      function autoLayout() {
+        if (!state.tables.length) return;
+        // Build dependency depth: parent tables (targets of FKs) on left, child tables on right
+        const inDegree = new Map();
+        const children = new Map();
+        state.tables.forEach(t => {
+          inDegree.set(t.id, 0);
+          children.set(t.id, []);
+        });
+        state.relations.forEach(r => {
+          if (r.sourceTableId !== r.targetTableId && inDegree.has(r.sourceTableId) && children.has(r.targetTableId)) {
+            children.get(r.targetTableId).push(r.sourceTableId);
+            inDegree.set(r.sourceTableId, inDegree.get(r.sourceTableId) + 1);
+          }
+        });
+
+        const levels = new Map();
+        const queue = [];
+        state.tables.forEach(t => {
+          if (inDegree.get(t.id) === 0) {
+            levels.set(t.id, 0);
+            queue.push(t.id);
+          }
+        });
+
+        // BFS to assign layers
+        while (queue.length) {
+          const curr = queue.shift();
+          const lvl = levels.get(curr);
+          (children.get(curr) || []).forEach(childId => {
+            const nextLvl = Math.max(levels.get(childId) || 0, lvl + 1);
+            levels.set(childId, nextLvl);
+            inDegree.set(childId, inDegree.get(childId) - 1);
+            if (inDegree.get(childId) === 0) {
+              queue.push(childId);
+            }
+          });
+        }
+
+        // Assign any cyclic/unvisited tables
+        state.tables.forEach(t => {
+          if (!levels.has(t.id)) levels.set(t.id, 0);
+        });
+
+        // Group tables by level
+        const columnsByLevel = new Map();
+        state.tables.forEach(t => {
+          const lvl = levels.get(t.id);
+          if (!columnsByLevel.has(lvl)) columnsByLevel.set(lvl, []);
+          columnsByLevel.get(lvl).push(t);
+        });
+
+        // If everything landed in level 0 (no relations), arrange in neat 3-column grid
+        if (columnsByLevel.size === 1 && state.tables.length > 3) {
+          const cols = Math.ceil(Math.sqrt(state.tables.length));
+          const colHeights = new Array(cols).fill(60);
+          state.tables.forEach((t, idx) => {
+            const c = idx % cols;
+            t.x = 60 + c * (TABLE_WIDTH + 110);
+            t.y = colHeights[c];
+            colHeights[c] += HEADER_HEIGHT + t.columns.length * ROW_HEIGHT + 64;
+          });
+        } else {
+          const sortedLevels = Array.from(columnsByLevel.keys()).sort((a, b) => a - b);
+          sortedLevels.forEach((lvl, colIdx) => {
+            const group = columnsByLevel.get(lvl);
+            let curY = 60;
+            group.forEach(t => {
+              t.x = 60 + colIdx * (TABLE_WIDTH + 130);
+              t.y = curY;
+              curY += HEADER_HEIGHT + t.columns.length * ROW_HEIGHT + 64;
+            });
+          });
+        }
+
+        pushHistory();
+        renderCanvas();
+        fitToViewport();
+        showToast('Tables arranged neatly', 'success');
+      }
+
+      /* =====================================================================
+         10. CANVAS RENDERING (Tables + 60fps SVG Bezier Crow's-Foot Lines)
+         ===================================================================== */
+      function getPortPosition(table, colId, side) {
+        const colIdx = table.columns.findIndex(c => c.id === colId);
+        const safeIdx = colIdx >= 0 ? colIdx : 0;
+        const y = table.y + HEADER_HEIGHT + safeIdx * ROW_HEIGHT + ROW_HEIGHT / 2;
+        const x = side === 'left' ? table.x : table.x + TABLE_WIDTH;
+        return { x, y };
+      }
+
+      function computeRelationGeometry(rel) {
+        const srcTable = getTable(rel.sourceTableId);
+        const tgtTable = getTable(rel.targetTableId);
+        if (!srcTable || !tgtTable) return null;
+
+        let srcSide = 'right';
+        let tgtSide = 'left';
+
+        if (srcTable.id === tgtTable.id) {
+          srcSide = 'right';
+          tgtSide = 'right';
+        } else {
+          const srcCenter = srcTable.x + TABLE_WIDTH / 2;
+          const tgtCenter = tgtTable.x + TABLE_WIDTH / 2;
+          if (srcCenter > tgtCenter + 40) {
+            srcSide = 'left';
+            tgtSide = 'right';
+          } else if (tgtCenter > srcCenter + 40) {
+            srcSide = 'right';
+            tgtSide = 'left';
+          } else {
+            // Stacked vertically — route smoothly on right side
+            srcSide = 'right';
+            tgtSide = 'right';
+          }
+        }
+
+        const p1 = getPortPosition(srcTable, rel.sourceColumnId, srcSide);
+        const p2 = getPortPosition(tgtTable, rel.targetColumnId, tgtSide);
+
+        const stub = 18;
+        const dir1 = srcSide === 'right' ? 1 : -1;
+        const dir2 = tgtSide === 'right' ? 1 : -1;
+
+        const s1x = p1.x + dir1 * stub;
+        const s2x = p2.x + dir2 * stub;
+
+        let cp1x, cp2x;
+        if (srcSide === tgtSide) {
+          const loopOut = srcTable.id === tgtTable.id ? 70 : 65;
+          const outerX = srcSide === 'right' ? Math.max(s1x, s2x) + loopOut : Math.min(s1x, s2x) - loopOut;
+          cp1x = outerX;
+          cp2x = outerX;
+        } else {
+          const dx = Math.max(50, Math.abs(s2x - s1x) * 0.48);
+          cp1x = s1x + dir1 * dx;
+          cp2x = s2x + dir2 * dx;
+        }
+
+        const pathD = `M ${p1.x} ${p1.y} L ${s1x} ${p1.y} C ${cp1x} ${p1.y}, ${cp2x} ${p2.y}, ${s2x} ${p2.y} L ${p2.x} ${p2.y}`;
+
+        // Cubic Bezier midpoint at t = 0.5
+        const midX = 0.125 * s1x + 0.375 * cp1x + 0.375 * cp2x + 0.125 * s2x;
+        const midY = 0.125 * p1.y + 0.375 * p1.y + 0.375 * p2.y + 0.125 * p2.y;
+
+        return { p1, p2, dir1, dir2, pathD, midX, midY };
+      }
+
+      function buildCrowsFootMarkup(x, y, dir, isMany) {
+        // dir = 1 means line exits right from table; dir = -1 means line exits left
+        if (isMany) {
+          const base = x + dir * 13;
+          return `
+            <path class="rel-marker-line" d="M ${base} ${y} L ${x + dir * 1} ${y - 6.5} M ${base} ${y} L ${x + dir * 1} ${y + 6.5}" />
+            <line class="rel-marker-line" x1="${x + dir * 14}" y1="${y - 5.5}" x2="${x + dir * 14}" y2="${y + 5.5}" />
+          `;
+        } else {
+          // "One" marker: double vertical ticks
+          const t1 = x + dir * 8;
+          const t2 = x + dir * 13;
+          return `
+            <line class="rel-marker-line" x1="${t1}" y1="${y - 6}" x2="${t1}" y2="${y + 6}" />
+            <line class="rel-marker-line" x1="${t2}" y1="${y - 6}" x2="${t2}" y2="${y + 6}" />
+          `;
+        }
+      }
+
+      function renderRelations() {
+        let svgHtml = '';
+        state.relations.forEach(rel => {
+          const geom = computeRelationGeometry(rel);
+          if (!geom) return;
+          const isSelected = state.selectedRelationId === rel.id;
+          // Source is FK side (Many in 1:N, Many in N:M, One in 1:1)
+          const srcMany = rel.cardinality === '1:N' || rel.cardinality === 'N:M';
+          // Target is PK side (One in 1:N, Many in N:M, One in 1:1)
+          const tgtMany = rel.cardinality === 'N:M';
+
+          const srcMarker = buildCrowsFootMarkup(geom.p1.x, geom.p1.y, geom.dir1, srcMany);
+          const tgtMarker = buildCrowsFootMarkup(geom.p2.x, geom.p2.y, geom.dir2, tgtMany);
+
+          svgHtml += `
+            <g class="rel-group ${isSelected ? 'is-selected' : ''}" data-rel-id="${rel.id}">
+              <path class="rel-path-hit" d="${geom.pathD}" />
+              <path class="rel-path-visible" d="${geom.pathD}" />
+              ${srcMarker}
+              ${tgtMarker}
+              <g transform="translate(${geom.midX}, ${geom.midY})">
+                <rect class="rel-pill-rect" x="-16" y="-9.5" width="32" height="19" rx="9.5" />
+                <text class="rel-pill-text" x="0" y="3.5" text-anchor="middle">${rel.cardinality}</text>
+              </g>
+            </g>
+          `;
+        });
+        dom.relationsLayer.innerHTML = svgHtml;
+        positionRelationPopover();
+      }
+
+      function positionRelationPopover() {
+        if (!state.selectedRelationId) {
+          dom.relPopover.classList.add('hidden');
+          return;
+        }
+        const rel = getRelation(state.selectedRelationId);
+        if (!rel) {
+          dom.relPopover.classList.add('hidden');
+          return;
+        }
+        const geom = computeRelationGeometry(rel);
+        if (!geom) return;
+
+        const screen = worldToScreen(geom.midX, geom.midY);
+        dom.relPopover.classList.remove('hidden');
+        dom.relPopover.style.left = `${Math.max(12, screen.x - 115)}px`;
+        dom.relPopover.style.top = `${Math.max(12, screen.y - 52)}px`;
+
+        dom.relPopover.querySelectorAll('.rel-pop-card').forEach(btn => {
+          const active = btn.dataset.card === rel.cardinality;
+          btn.style.backgroundColor = active ? 'var(--accent)' : 'var(--bg-surface)';
+          btn.style.color = active ? '#ffffff' : 'var(--text-primary)';
+          btn.style.borderColor = active ? 'transparent' : 'var(--border-subtle)';
+        });
+      }
+
+      function renderTables() {
+        let html = '';
+        state.tables.forEach(table => {
+          const isSelected = state.selectedTableId === table.id;
+          const rowsHtml = table.columns.map(col => {
+            const badges = [];
+            if (col.isPK) badges.push('<span class="badge-pk text-[9px] font-bold px-1 py-0.5 rounded leading-none">PK</span>');
+            if (col.isFK) badges.push('<span class="badge-fk text-[9px] font-bold px-1 py-0.5 rounded leading-none">FK</span>');
+            if (col.isUnique && !col.isPK) badges.push('<span class="badge-uq text-[9px] font-bold px-1 py-0.5 rounded leading-none">UQ</span>');
+            if (col.isNotNull && !col.isPK) badges.push('<span class="badge-nn text-[9px] font-bold px-1 py-0.5 rounded leading-none">NN</span>');
+
+            return `
+              <div class="col-row" data-table-id="${table.id}" data-col-id="${col.id}">
+                <div class="port-handle port-left" data-port-table="${table.id}" data-port-col="${col.id}" data-port-side="left" title="Drag to connect Foreign Key"></div>
+                <div class="flex items-center gap-1.5 min-w-0 pr-2">
+                  <div class="flex items-center gap-1 shrink-0">${badges.join('')}</div>
+                  <span class="text-xs font-medium truncate" title="${escapeHtml(col.name)}">${escapeHtml(col.name)}</span>
+                </div>
+                <span class="text-[10px] font-mono-code font-medium shrink-0" style="color: var(--text-muted);">${escapeHtml(col.type)}</span>
+                <div class="port-handle port-right" data-port-table="${table.id}" data-port-col="${col.id}" data-port-side="right" title="Drag to connect Foreign Key"></div>
+              </div>
+            `;
+          }).join('');
+
+          html += `
+            <div class="table-node ${isSelected ? 'is-selected' : ''}" data-table-id="${table.id}" style="transform: translate(${table.x}px, ${table.y}px);">
+              <div class="table-header" style="background: linear-gradient(135deg, ${table.color}, ${table.color}dd);">
+                <div class="flex items-center gap-2 min-w-0">
+                  <svg class="w-3.5 h-3.5 text-white/90 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                  <span class="text-xs font-bold text-white truncate tracking-tight">${escapeHtml(table.name)}</span>
+                </div>
+                <span class="text-[10px] font-mono-code font-semibold text-white/80 bg-black/20 px-1.5 py-0.5 rounded">${table.columns.length}</span>
+              </div>
+              <div class="pb-1">${rowsHtml || '<div class="px-3 py-2 text-[11px] italic" style="color: var(--text-muted);">No columns</div>'}</div>
+            </div>
+          `;
+        });
+        dom.tablesLayer.innerHTML = html;
+      }
+
+      function renderCanvas() {
+        syncFKFlags();
+        renderTables();
+        renderRelations();
+        dom.canvasStats.textContent = `${state.tables.length} ${state.tables.length === 1 ? 'table' : 'tables'} • ${state.relations.length} ${state.relations.length === 1 ? 'relation' : 'relations'}`;
+      }
+
+      /* =====================================================================
+         11. INSPECTOR (TABLE EDITOR & OVERVIEW)
+         ===================================================================== */
+      function renderInspector() {
+        if (state.selectedRelationId) {
+          const rel = getRelation(state.selectedRelationId);
+          if (rel) {
+            renderRelationInspector(rel);
+            return;
+          }
+        }
+        if (state.selectedTableId) {
+          const tbl = getTable(state.selectedTableId);
+          if (tbl) {
+            renderTableInspector(tbl);
+            return;
+          }
+        }
+        renderOverviewInspector();
+      }
+
+      function renderOverviewInspector() {
+        const totalCols = state.tables.reduce((acc, t) => acc + t.columns.length, 0);
+        const listHtml = state.tables.map(t => `
+          <button data-select-table="${t.id}" class="w-full sf-surface hover:border-blue-500/50 rounded-xl p-2.5 flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-3 h-3 rounded-full shrink-0" style="background: ${t.color};"></span>
+              <span class="text-xs font-semibold truncate">${escapeHtml(t.name)}</span>
+            </div>
+            <span class="text-[11px] font-mono-code" style="color: var(--text-muted);">${t.columns.length} cols</span>
+          </button>
+        `).join('');
+
+        dom.panelEditor.innerHTML = `
+          <div class="space-y-4">
+            <div class="grid grid-cols-3 gap-2">
+              <div class="sf-surface rounded-xl p-2.5 text-center">
+                <div class="text-lg font-bold">${state.tables.length}</div>
+                <div class="text-[10px] font-medium uppercase tracking-wider" style="color: var(--text-muted);">Tables</div>
+              </div>
+              <div class="sf-surface rounded-xl p-2.5 text-center">
+                <div class="text-lg font-bold">${totalCols}</div>
+                <div class="text-[10px] font-medium uppercase tracking-wider" style="color: var(--text-muted);">Columns</div>
+              </div>
+              <div class="sf-surface rounded-xl p-2.5 text-center">
+                <div class="text-lg font-bold">${state.relations.length}</div>
+                <div class="text-[10px] font-medium uppercase tracking-wider" style="color: var(--text-muted);">Relations</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Tables in Schema</h3>
+                <button id="inspector-add-table" class="text-xs font-semibold text-blue-400 hover:text-blue-300">+ New Table</button>
+              </div>
+              <div class="space-y-1.5">
+                ${listHtml || '<div class="text-xs py-6 text-center rounded-xl sf-surface" style="color: var(--text-muted);">Canvas is empty. Click "+ Add Table" or pick a template.</div>'}
+              </div>
+            </div>
+
+            <div class="sf-surface rounded-xl p-3 text-[11px] space-y-1.5" style="color: var(--text-secondary);">
+              <div class="font-semibold" style="color: var(--text-primary);">Pro Tips</div>
+              <div>• Click any table card to edit columns &amp; keys.</div>
+              <div>• Drag from any column's side handle to another column to create a Foreign Key relation.</div>
+              <div>• Click any relation curve to change cardinality (<code class="font-mono-code">1:1</code>, <code class="font-mono-code">1:N</code>, <code class="font-mono-code">N:M</code>).</div>
+              <div>• Use <code class="font-mono-code">Ctrl+Z</code> / <code class="font-mono-code">Ctrl+Y</code> to undo &amp; redo.</div>
+            </div>
+          </div>
+        `;
+
+        dom.panelEditor.querySelector('#inspector-add-table')?.addEventListener('click', addNewTable);
+        dom.panelEditor.querySelectorAll('[data-select-table]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectTable(btn.dataset.selectTable);
+          });
+        });
+      }
+
+      function renderRelationInspector(rel) {
+        const srcT = getTable(rel.sourceTableId);
+        const srcC = getColumn(rel.sourceTableId, rel.sourceColumnId);
+        const tgtT = getTable(rel.targetTableId);
+        const tgtC = getColumn(rel.targetTableId, rel.targetColumnId);
+
+        dom.panelEditor.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted);">Relationship Inspector</h3>
+              <button id="insp-rel-close" class="text-xs font-medium hover:underline" style="color: var(--text-secondary);">Overview</button>
+            </div>
+
+            <div class="sf-surface rounded-xl p-3.5 space-y-3">
+              <div>
+                <div class="text-[10px] font-semibold uppercase tracking-wider mb-1" style="color: var(--text-muted);">Foreign Key (Source)</div>
+                <div class="font-mono-code text-xs font-semibold text-cyan-400">${escapeHtml(srcT?.name || '?')}.${escapeHtml(srcC?.name || '?')}</div>
+              </div>
+              <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
+                <div class="flex-1 h-px" style="background: var(--border-strong);"></div>
+                <span>REFERENCES</span>
+                <div class="flex-1 h-px" style="background: var(--border-strong);"></div>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold uppercase tracking-wider mb-1" style="color: var(--text-muted);">Primary Key (Target)</div>
+                <div class="font-mono-code text-xs font-semibold text-amber-400">${escapeHtml(tgtT?.name || '?')}.${escapeHtml(tgtC?.name || '?')}</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold mb-2">Cardinality</label>
+              <div class="grid grid-cols-3 gap-2">
+                ${CARDINALITIES.map(c => `
+                  <button data-insp-card="${c}" class="py-2 rounded-lg text-xs font-mono-code font-bold border transition ${rel.cardinality === c ? 'bg-blue-600 text-white border-transparent' : 'sf-btn'}">${c}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <button id="insp-rel-delete" class="w-full py-2 rounded-lg text-xs font-semibold text-red-400 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 transition">
+              Delete Relationship
+            </button>
+          </div>
+        `;
+
+        dom.panelEditor.querySelector('#insp-rel-close')?.addEventListener('click', () => {
+          state.selectedRelationId = null;
+          renderCanvas();
+          renderInspector();
+        });
+        dom.panelEditor.querySelectorAll('[data-insp-card]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            rel.cardinality = btn.dataset.inspCard;
+            pushHistory();
+            renderRelations();
+            renderInspector();
+            renderLiveCode();
+          });
+        });
+        dom.panelEditor.querySelector('#insp-rel-delete')?.addEventListener('click', () => {
+          deleteRelation(rel.id);
+        });
+      }
+
+      function renderTableInspector(table) {
+        // Build list of possible FK targets (all columns in all tables except same column)
+        const fkTargets = [];
+        state.tables.forEach(t => {
+          t.columns.forEach(c => {
+            if (t.id !== table.id) {
+              fkTargets.push({ tableId: t.id, colId: c.id, label: `${t.name}.${c.name}${c.isPK ? ' (PK)' : ''}` });
+            }
+          });
+        });
+
+        const colorSwatches = TABLE_COLORS.map(c => `
+          <button data-tbl-color="${c}" class="w-6 h-6 rounded-full transition transform hover:scale-110 ${table.color === c ? 'ring-2 ring-offset-2 ring-blue-400' : ''}"
+            style="background: ${c}; --tw-ring-offset-color: var(--bg-sidebar);" title="${c}"></button>
+        `).join('');
+
+        const colsHtml = table.columns.map((col, idx) => {
+          const rel = getRelationForColumn(table.id, col.id);
+          const currentTargetVal = rel ? `${rel.targetTableId}::${rel.targetColumnId}` : '';
+
+          return `
+            <div class="sf-surface rounded-xl p-2.5 space-y-2" data-insp-col="${col.id}">
+              <!-- Row 1: Name + Type + Move/Delete -->
+              <div class="flex items-center gap-1.5">
+                <input type="text" data-col-field="name" value="${escapeHtml(col.name)}" placeholder="column_name"
+                  class="sf-input flex-1 min-w-0 text-xs font-mono-code font-medium rounded-lg px-2 py-1.5" />
+                <select data-col-field="type" class="sf-input text-[11px] font-mono-code rounded-lg px-1.5 py-1.5 w-[96px] shrink-0">
+                  ${DATA_TYPES.map(dt => `<option value="${dt}" ${col.type === dt ? 'selected' : ''}>${dt}</option>`).join('')}
+                </select>
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button data-col-move="up" class="sf-btn p-1 rounded-md" title="Move Up" ${idx === 0 ? 'disabled' : ''}>
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                  </button>
+                  <button data-col-move="down" class="sf-btn p-1 rounded-md" title="Move Down" ${idx === table.columns.length - 1 ? 'disabled' : ''}>
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <button data-col-delete class="p-1 rounded-md text-red-400 hover:bg-red-500/15 transition" title="Delete Column">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 2: Constraint Toggles + Default -->
+              <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                <div class="flex items-center gap-1">
+                  <button data-col-toggle="isPK" class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition ${col.isPK ? 'badge-pk' : 'opacity-45 sf-btn'}">PK</button>
+                  <button data-col-toggle="isFK" class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition ${col.isFK ? 'badge-fk' : 'opacity-45 sf-btn'}">FK</button>
+                  <button data-col-toggle="isNotNull" class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition ${col.isNotNull ? 'badge-nn' : 'opacity-45 sf-btn'}">NN</button>
+                  <button data-col-toggle="isUnique" class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition ${col.isUnique ? 'badge-uq' : 'opacity-45 sf-btn'}">UQ</button>
+                </div>
+                <input type="text" data-col-field="defaultValue" value="${escapeHtml(col.defaultValue || '')}" placeholder="Default..."
+                  class="sf-input text-[11px] font-mono-code rounded-md px-2 py-0.5 w-28 sm:w-32" />
+              </div>
+
+              <!-- Row 3: Foreign Key Target Config (visible if FK toggled) -->
+              ${col.isFK ? `
+                <div class="pt-1.5 mt-1 border-t flex items-center gap-1.5" style="border-color: var(--border-subtle);">
+                  <span class="text-[10px] font-semibold text-cyan-400 shrink-0">REF:</span>
+                  <select data-col-fk-target class="sf-input flex-1 min-w-0 text-[11px] font-mono-code rounded-md px-1.5 py-1">
+                    <option value="">-- Select target --</option>
+                    ${fkTargets.map(ft => `<option value="${ft.tableId}::${ft.colId}" ${currentTargetVal === `${ft.tableId}::${ft.colId}` ? 'selected' : ''}>${escapeHtml(ft.label)}</option>`).join('')}
+                  </select>
+                  <select data-col-fk-card class="sf-input text-[11px] font-mono-code rounded-md px-1.5 py-1 w-[58px] shrink-0" ${!rel ? 'disabled' : ''}>
+                    ${CARDINALITIES.map(c => `<option value="${c}" ${rel && rel.cardinality === c ? 'selected' : ''}>${c}</option>`).join('')}
+                  </select>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        dom.panelEditor.innerHTML = `
+          <div class="space-y-4">
+            <!-- Table Header Config -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <button id="insp-back-overview" class="text-[11px] font-medium flex items-center gap-1 hover:underline" style="color: var(--text-secondary);">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  <span>All Tables</span>
+                </button>
+                <button id="insp-delete-table" class="text-[11px] font-semibold text-red-400 hover:text-red-300 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+                  <span>Delete Table</span>
+                </button>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold mb-1" style="color: var(--text-secondary);">Table Name</label>
+                <input id="insp-table-name" type="text" value="${escapeHtml(table.name)}" class="sf-input w-full text-sm font-mono-code font-semibold rounded-lg px-3 py-2" />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold mb-1.5" style="color: var(--text-secondary);">Header Accent</label>
+                <div class="flex items-center gap-2 flex-wrap">${colorSwatches}</div>
+              </div>
+            </div>
+
+            <!-- Columns List -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Columns (${table.columns.length})</h3>
+                <button id="insp-add-col" class="sf-btn-primary text-[11px] font-semibold px-2.5 py-1 rounded-md">+ Add Column</button>
+              </div>
+              <div class="space-y-2">${colsHtml}</div>
+            </div>
+          </div>
+        `;
+
+        // Wire Table Inspector Events
+        dom.panelEditor.querySelector('#insp-back-overview')?.addEventListener('click', () => {
+          state.selectedTableId = null;
+          renderCanvas();
+          renderInspector();
+        });
+
+        dom.panelEditor.querySelector('#insp-delete-table')?.addEventListener('click', () => {
+          deleteTable(table.id);
+        });
+
+        const nameInput = dom.panelEditor.querySelector('#insp-table-name');
+        nameInput?.addEventListener('input', (e) => {
+          table.name = e.target.value.replace(/\s+/g, '_');
+          renderCanvas();
+          renderLiveCode();
+        });
+        nameInput?.addEventListener('change', () => pushHistory());
+
+        dom.panelEditor.querySelectorAll('[data-tbl-color]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            table.color = btn.dataset.tblColor;
+            pushHistory();
+            renderCanvas();
+            renderInspector();
+          });
+        });
+
+        dom.panelEditor.querySelector('#insp-add-col')?.addEventListener('click', () => {
+          table.columns.push({
+            id: uid('col'),
+            name: `column_${table.columns.length + 1}`,
+            type: 'VARCHAR',
+            isPK: false,
+            isFK: false,
+            isNotNull: false,
+            isUnique: false,
+            defaultValue: ''
+          });
+          pushHistory();
+          renderCanvas();
+          renderInspector();
+          renderLiveCode();
+        });
+
+        // Wire Column Row Controls
+        dom.panelEditor.querySelectorAll('[data-insp-col]').forEach(card => {
+          const colId = card.dataset.inspCol;
+          const col = table.columns.find(c => c.id === colId);
+          if (!col) return;
+
+          // Text / Select inputs
+          card.querySelectorAll('[data-col-field]').forEach(input => {
+            const field = input.dataset.colField;
+            input.addEventListener('input', (e) => {
+              col[field] = field === 'name' ? e.target.value.replace(/\s+/g, '_') : e.target.value;
+              renderCanvas();
+              renderLiveCode();
+            });
+            input.addEventListener('change', () => pushHistory());
+          });
+
+          // Constraint toggles
+          card.querySelectorAll('[data-col-toggle]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const prop = btn.dataset.colToggle;
+              col[prop] = !col[prop];
+              if (prop === 'isPK' && col.isPK) {
+                col.isNotNull = true;
+              }
+              if (prop === 'isFK' && !col.isFK) {
+                // Remove existing FK relation from this column
+                state.relations = state.relations.filter(r => !(r.sourceTableId === table.id && r.sourceColumnId === col.id));
+              }
+              pushHistory();
+              renderCanvas();
+              renderInspector();
+              renderLiveCode();
+            });
+          });
+
+          // Move Up / Down
+          card.querySelectorAll('[data-col-move]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const dir = btn.dataset.colMove === 'up' ? -1 : 1;
+              const idx = table.columns.findIndex(c => c.id === colId);
+              const nextIdx = idx + dir;
+              if (nextIdx < 0 || nextIdx >= table.columns.length) return;
+              const [moved] = table.columns.splice(idx, 1);
+              table.columns.splice(nextIdx, 0, moved);
+              pushHistory();
+              renderCanvas();
+              renderInspector();
+              renderLiveCode();
+            });
+          });
+
+          // Delete Column
+          card.querySelector('[data-col-delete]')?.addEventListener('click', () => {
+            table.columns = table.columns.filter(c => c.id !== colId);
+            state.relations = state.relations.filter(r =>
+              !(r.sourceTableId === table.id && r.sourceColumnId === colId) &&
+              !(r.targetTableId === table.id && r.targetColumnId === colId)
+            );
+            pushHistory();
+            renderCanvas();
+            renderInspector();
+            renderLiveCode();
+          });
+
+          // FK Target Selector
+          card.querySelector('[data-col-fk-target]')?.addEventListener('change', (e) => {
+            const val = e.target.value;
+            // Remove previous relation on this source column
+            state.relations = state.relations.filter(r => !(r.sourceTableId === table.id && r.sourceColumnId === col.id));
+            if (val) {
+              const [tgtTableId, tgtColId] = val.split('::');
+              state.relations.push({
+                id: uid('rel'),
+                sourceTableId: table.id,
+                sourceColumnId: col.id,
+                targetTableId: tgtTableId,
+                targetColumnId: tgtColId,
+                cardinality: '1:N'
+              });
+            }
+            pushHistory();
+            renderCanvas();
+            renderInspector();
+            renderLiveCode();
+          });
+
+          // FK Cardinality Selector
+          card.querySelector('[data-col-fk-card]')?.addEventListener('change', (e) => {
+            const rel = getRelationForColumn(table.id, col.id);
+            if (rel) {
+              rel.cardinality = e.target.value;
+              pushHistory();
+              renderRelations();
+              renderLiveCode();
+            }
+          });
+        });
+      }
+
+      /* =====================================================================
+         12. CRUD OPERATIONS (Tables & Relations)
+         ===================================================================== */
+      function selectTable(tableId) {
+        state.selectedTableId = tableId;
+        state.selectedRelationId = null;
+        renderCanvas();
+        renderInspector();
+      }
+
+      function selectRelation(relId) {
+        state.selectedRelationId = relId;
+        state.selectedTableId = null;
+        renderCanvas();
+        renderInspector();
+      }
+
+      function addNewTable() {
+        const rect = dom.viewport.getBoundingClientRect();
+        const center = screenToWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        const offset = (state.tables.length % 5) * 28;
+        const newTable = {
+          id: uid('tbl'),
+          name: `table_${state.tables.length + 1}`,
+          color: TABLE_COLORS[state.tables.length % TABLE_COLORS.length],
+          x: Math.round(center.x - TABLE_WIDTH / 2 + offset),
+          y: Math.round(center.y - 80 + offset),
+          columns: [
+            { id: uid('col'), name: 'id', type: 'UUID', isPK: true, isFK: false, isNotNull: true, isUnique: true, defaultValue: 'gen_random_uuid()' },
+            { id: uid('col'), name: 'created_at', type: 'TIMESTAMP', isPK: false, isFK: false, isNotNull: true, isUnique: false, defaultValue: 'CURRENT_TIMESTAMP' }
+          ]
+        };
+        state.tables.push(newTable);
+        state.selectedTableId = newTable.id;
+        state.selectedRelationId = null;
+        setActiveTab('editor');
+        pushHistory();
+        renderAll();
+        showToast(`Added table "${newTable.name}"`, 'success');
+      }
+
+      function deleteTable(tableId) {
+        const tbl = getTable(tableId);
+        if (!tbl) return;
+        state.tables = state.tables.filter(t => t.id !== tableId);
+        state.relations = state.relations.filter(r => r.sourceTableId !== tableId && r.targetTableId !== tableId);
+        if (state.selectedTableId === tableId) state.selectedTableId = null;
+        pushHistory();
+        renderAll();
+        showToast(`Deleted table "${tbl.name}"`);
+      }
+
+      function deleteRelation(relId) {
+        const rel = getRelation(relId);
+        if (!rel) return;
+        state.relations = state.relations.filter(r => r.id !== relId);
+        // Unset FK flag if no other relation originates from that column
+        const stillFK = state.relations.some(r => r.sourceTableId === rel.sourceTableId && r.sourceColumnId === rel.sourceColumnId);
+        if (!stillFK) {
+          const col = getColumn(rel.sourceTableId, rel.sourceColumnId);
+          if (col) col.isFK = false;
+        }
+        if (state.selectedRelationId === relId) state.selectedRelationId = null;
+        pushHistory();
+        renderAll();
+        showToast('Deleted relationship');
+      }
+
+      function createRelationFromDrag(fromTableId, fromColId, toTableId, toColId) {
+        if (fromTableId === toTableId && fromColId === toColId) return;
+        const fromCol = getColumn(fromTableId, fromColId);
+        const toCol = getColumn(toTableId, toColId);
+        if (!fromCol || !toCol) return;
+
+        // Smart orientation: if user dragged FROM a PK TO a non-PK, orient FK -> PK automatically
+        let srcT = fromTableId, srcC = fromColId, tgtT = toTableId, tgtC = toColId;
+        if (fromCol.isPK && !toCol.isPK) {
+          srcT = toTableId; srcC = toColId;
+          tgtT = fromTableId; tgtC = fromColId;
+        }
+
+        // Prevent duplicate relation
+        const exists = state.relations.some(r =>
+          r.sourceTableId === srcT && r.sourceColumnId === srcC &&
+          r.targetTableId === tgtT && r.targetColumnId === tgtC
+        );
+        if (exists) {
+          showToast('Relationship already exists', 'info');
+          return;
+        }
+
+        const fkCol = getColumn(srcT, srcC);
+        if (fkCol) fkCol.isFK = true;
+
+        const newRel = {
+          id: uid('rel'),
+          sourceTableId: srcT,
+          sourceColumnId: srcC,
+          targetTableId: tgtT,
+          targetColumnId: tgtC,
+          cardinality: '1:N'
+        };
+        state.relations.push(newRel);
+        state.selectedRelationId = newRel.id;
+        state.selectedTableId = null;
+        pushHistory();
+        renderAll();
+        showToast('Created Foreign Key relationship', 'success');
+      }
+
+      /* =====================================================================
+         13. MULTI-DIALECT CODE GENERATOR (PostgreSQL, MySQL, SQLite, Prisma)
+         ===================================================================== */
+      function mapSqlType(type, dialect) {
+        const maps = {
+          postgres: {
+            UUID: 'UUID', INT: 'INTEGER', VARCHAR: 'VARCHAR(255)', TEXT: 'TEXT',
+            BOOLEAN: 'BOOLEAN', TIMESTAMP: 'TIMESTAMPTZ', JSONB: 'JSONB', DECIMAL: 'DECIMAL(12, 2)'
+          },
+          mysql: {
+            UUID: 'CHAR(36)', INT: 'INT', VARCHAR: 'VARCHAR(255)', TEXT: 'TEXT',
+            BOOLEAN: 'TINYINT(1)', TIMESTAMP: 'TIMESTAMP', JSONB: 'JSON', DECIMAL: 'DECIMAL(12, 2)'
+          },
+          sqlite: {
+            UUID: 'TEXT', INT: 'INTEGER', VARCHAR: 'TEXT', TEXT: 'TEXT',
+            BOOLEAN: 'INTEGER', TIMESTAMP: 'TEXT', JSONB: 'TEXT', DECIMAL: 'REAL'
+          },
+          prisma: {
+            UUID: 'String', INT: 'Int', VARCHAR: 'String', TEXT: 'String',
+            BOOLEAN: 'Boolean', TIMESTAMP: 'DateTime', JSONB: 'Json', DECIMAL: 'Decimal'
+          }
+        };
+        return (maps[dialect] && maps[dialect][type]) || type;
+      }
+
+      function toPascalCase(str) {
+        return String(str || 'Model')
+          .split(/[^a-zA-Z0-9]+/)
+          .filter(Boolean)
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join('');
+      }
+
+      function generateSchemaCode(dialect) {
+        if (!state.tables.length) {
+          return dialect === 'prisma'
+            ? '// Add tables on the canvas to generate Prisma Schema\n'
+            : '-- Add tables on the canvas to generate SQL DDL\n';
+        }
+
+        if (dialect === 'postgres') {
+          const lines = ['-- Generated by SchemaForge Studio (PostgreSQL)\n'];
+          state.tables.forEach(table => {
+            lines.push(`CREATE TABLE "${table.name}" (`);
+            const colDefs = [];
+            const pks = table.columns.filter(c => c.isPK);
+
+            table.columns.forEach(col => {
+              let def = `  "${col.name}" ${mapSqlType(col.type, 'postgres')}`;
+              if (col.isPK && pks.length === 1) def += ' PRIMARY KEY';
+              if (col.isNotNull && !col.isPK) def += ' NOT NULL';
+              if (col.isUnique && !col.isPK) def += ' UNIQUE';
+              if (col.defaultValue && col.defaultValue.trim()) {
+                def += ` DEFAULT ${col.defaultValue.trim()}`;
+              }
+              const rel = getRelationForColumn(table.id, col.id);
+              if (rel) {
+                const tgtT = getTable(rel.targetTableId);
+                const tgtC = getColumn(rel.targetTableId, rel.targetColumnId);
+                if (tgtT && tgtC) {
+                  def += ` REFERENCES "${tgtT.name}"("${tgtC.name}") ON DELETE CASCADE`;
+                }
+              }
+              colDefs.push(def);
+            });
+
+            if (pks.length > 1) {
+              colDefs.push(`  PRIMARY KEY (${pks.map(c => `"${c.name}"`).join(', ')})`);
+            }
+            lines.push(colDefs.join(',\n'));
+            lines.push(');\n');
+          });
+          return lines.join('\n');
+        }
+
+        if (dialect === 'mysql') {
+          const lines = ['-- Generated by SchemaForge Studio (MySQL 8 / InnoDB)\n'];
+          state.tables.forEach(table => {
+            lines.push(`CREATE TABLE \`${table.name}\` (`);
+            const defs = [];
+            const pks = table.columns.filter(c => c.isPK);
+
+            table.columns.forEach(col => {
+              let def = `  \`${col.name}\` ${mapSqlType(col.type, 'mysql')}`;
+              if (col.isNotNull || col.isPK) def += ' NOT NULL';
+              if (col.isUnique && !col.isPK) def += ' UNIQUE';
+              if (col.defaultValue && col.defaultValue.trim()) {
+                const dv = col.defaultValue.trim();
+                if (!/gen_random_uuid/i.test(dv)) {
+                  def += ` DEFAULT ${dv}`;
+                }
+              }
+              defs.push(def);
+            });
+
+            if (pks.length) {
+              defs.push(`  PRIMARY KEY (${pks.map(c => `\`${c.name}\``).join(', ')})`);
+            }
+
+            state.relations
+              .filter(r => r.sourceTableId === table.id)
+              .forEach(r => {
+                const srcC = getColumn(r.sourceTableId, r.sourceColumnId);
+                const tgtT = getTable(r.targetTableId);
+                const tgtC = getColumn(r.targetTableId, r.targetColumnId);
+                if (srcC && tgtT && tgtC) {
+                  defs.push(`  CONSTRAINT \`fk_${table.name}_${srcC.name}\` FOREIGN KEY (\`${srcC.name}\`) REFERENCES \`${tgtT.name}\` (\`${tgtC.name}\`) ON DELETE CASCADE`);
+                }
+              });
+
+            lines.push(defs.join(',\n'));
+            lines.push(') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n');
+          });
+          return lines.join('\n');
+        }
+
+        if (dialect === 'sqlite') {
+          const lines = [
+            '-- Generated by SchemaForge Studio (SQLite 3)',
+            'PRAGMA foreign_keys = ON;\n'
+          ];
+          state.tables.forEach(table => {
+            lines.push(`CREATE TABLE "${table.name}" (`);
+            const defs = [];
+            const pks = table.columns.filter(c => c.isPK);
+
+            table.columns.forEach(col => {
+              let def = `  "${col.name}" ${mapSqlType(col.type, 'sqlite')}`;
+              if (col.isPK && pks.length === 1) def += ' PRIMARY KEY';
+              if (col.isNotNull && !col.isPK) def += ' NOT NULL';
+              if (col.isUnique && !col.isPK) def += ' UNIQUE';
+              if (col.defaultValue && col.defaultValue.trim()) {
+                const dv = col.defaultValue.trim();
+                if (!/gen_random_uuid/i.test(dv)) {
+                  def += ` DEFAULT ${dv}`;
+                }
+              }
+              defs.push(def);
+            });
+
+            if (pks.length > 1) {
+              defs.push(`  PRIMARY KEY (${pks.map(c => `"${c.name}"`).join(', ')})`);
+            }
+
+            state.relations
+              .filter(r => r.sourceTableId === table.id)
+              .forEach(r => {
+                const srcC = getColumn(r.sourceTableId, r.sourceColumnId);
+                const tgtT = getTable(r.targetTableId);
+                const tgtC = getColumn(r.targetTableId, r.targetColumnId);
+                if (srcC && tgtT && tgtC) {
+                  defs.push(`  FOREIGN KEY ("${srcC.name}") REFERENCES "${tgtT.name}" ("${tgtC.name}") ON DELETE CASCADE`);
+                }
+              });
+
+            lines.push(defs.join(',\n'));
+            lines.push(');\n');
+          });
+          return lines.join('\n');
+        }
+
+        if (dialect === 'prisma') {
+          const lines = [
+            '// Generated by SchemaForge Studio (Prisma Schema)',
+            'generator client {',
+            '  provider = "prisma-client-js"',
+            '}',
+            '',
+            'datasource db {',
+            '  provider = "postgresql"',
+            '  url      = env("DATABASE_URL")',
+            '}\n'
+          ];
+
+          state.tables.forEach(table => {
+            const modelName = toPascalCase(table.name);
+            lines.push(`model ${modelName} {`);
+            const pks = table.columns.filter(c => c.isPK);
+
+            table.columns.forEach(col => {
+              let pType = mapSqlType(col.type, 'prisma');
+              if (!col.isNotNull && !col.isPK) pType += '?';
+
+              const attrs = [];
+              if (col.isPK && pks.length === 1) attrs.push('@id');
+              if (col.isUnique && !col.isPK) attrs.push('@unique');
+
+              if (col.defaultValue && col.defaultValue.trim()) {
+                const dv = col.defaultValue.trim();
+                if (/gen_random_uuid|uuid/i.test(dv)) attrs.push('@default(uuid())');
+                else if (/current_timestamp|now/i.test(dv)) attrs.push('@default(now())');
+                else if (dv === 'true' || dv === 'false' || !isNaN(Number(dv))) attrs.push(`@default(${dv})`);
+                else attrs.push(`@default("${dv.replace(/^'|'$/g, '')}")`);
+              } else if (col.isPK && col.type === 'UUID') {
+                attrs.push('@default(uuid())');
+              }
+
+              lines.push(`  ${col.name.padEnd(20)} ${pType.padEnd(10)} ${attrs.join(' ')}`.trimEnd());
+            });
+
+            // Outgoing FK relations
+            const outgoing = state.relations.filter(r => r.sourceTableId === table.id);
+            outgoing.forEach(r => {
+              const srcC = getColumn(r.sourceTableId, r.sourceColumnId);
+              const tgtT = getTable(r.targetTableId);
+              const tgtC = getColumn(r.targetTableId, r.targetColumnId);
+              if (srcC && tgtT && tgtC) {
+                const relField = tgtT.name.replace(/s$/, '') || tgtT.name;
+                const tgtModel = toPascalCase(tgtT.name);
+                lines.push(`  ${relField.padEnd(20)} ${tgtModel.padEnd(10)} @relation(fields: [${srcC.name}], references: [${tgtC.name}])`);
+              }
+            });
+
+            // Incoming back-relations
+            const incoming = state.relations.filter(r => r.targetTableId === table.id);
+            const usedBackNames = new Set(table.columns.map(c => c.name));
+            incoming.forEach(r => {
+              const srcT = getTable(r.sourceTableId);
+              if (srcT) {
+                const srcModel = toPascalCase(srcT.name);
+                let fieldName = srcT.name;
+                if (usedBackNames.has(fieldName)) fieldName = `${fieldName}_rel`;
+                usedBackNames.add(fieldName);
+                const isOne = r.cardinality === '1:1';
+                lines.push(`  ${fieldName.padEnd(20)} ${srcModel}${isOne ? '?' : '[]'}`);
+              }
+            });
+
+            if (pks.length > 1) {
+              lines.push(`\n  @@id([${pks.map(c => c.name).join(', ')}])`);
+            }
+            if (modelName.toLowerCase() !== table.name.toLowerCase()) {
+              lines.push(`  @@map("${table.name}")`);
+            }
+            lines.push('}\n');
+          });
+
+          return lines.join('\n');
+        }
+
+        return '';
+      }
+
+      /* Syntax Highlighter (Clean Token-Based for SQL & Prisma) */
+      function highlightCode(code, dialect) {
+        const escaped = escapeHtml(code);
+        if (dialect === 'prisma') {
+          return escaped
+            .replace(/(\/\/[^\n]*)/g, '<span class="syn-comment">$1</span>')
+            .replace(/(&quot;[^&]*?&quot;)/g, '<span class="syn-str">$1</span>')
+            .replace(/(@@?\w+)/g, '<span class="syn-attr">$1</span>')
+            .replace(/\b(model|generator|datasource|enum)\b/g, '<span class="syn-kw">$1</span>')
+            .replace(/\b(String|Int|Boolean|DateTime|Json|Decimal|Float)\b/g, '<span class="syn-type">$1</span>');
+        }
+        // SQL dialects
+        return escaped
+          .replace(/(--[^\n]*)/g, '<span class="syn-comment">$1</span>')
+          .replace(/(&#39;[^&]*?&#39;)/g, '<span class="syn-str">$1</span>')
+          .replace(/\b(CREATE|TABLE|PRIMARY|KEY|FOREIGN|REFERENCES|NOT|NULL|UNIQUE|DEFAULT|CONSTRAINT|ON|DELETE|CASCADE|ENGINE|CHARSET|COLLATE|PRAGMA|CURRENT_TIMESTAMP)\b/g, '<span class="syn-kw">$1</span>')
+          .replace(/\b(UUID|INTEGER|INT|VARCHAR|CHAR|TEXT|BOOLEAN|TINYINT|TIMESTAMPTZ|TIMESTAMP|JSONB|JSON|DECIMAL|REAL)\b/g, '<span class="syn-type">$1</span>');
+      }
+
+      function renderLiveCode() {
+        const code = generateSchemaCode(state.dialect);
+        dom.liveCodeOutput.innerHTML = highlightCode(code, state.dialect);
+        const extMap = {
+          postgres: 'schema.postgres.sql',
+          mysql: 'schema.mysql.sql',
+          sqlite: 'schema.sqlite.sql',
+          prisma: 'schema.prisma'
+        };
+        dom.codeFilename.textContent = extMap[state.dialect] || 'schema.sql';
+
+        document.querySelectorAll('.dialect-btn').forEach(btn => {
+          const active = btn.dataset.dialect === state.dialect;
+          btn.style.backgroundColor = active ? 'var(--accent)' : 'transparent';
+          btn.style.color = active ? '#ffffff' : 'var(--text-secondary)';
+        });
+      }
+
+      /* =====================================================================
+         14. SQL DDL PARSER (Import SQL Modal)
+         ===================================================================== */
+      function normalizeSqlType(rawType) {
+        const t = (rawType || '').toUpperCase().replace(/\(.*\)/, '').trim();
+        if (t.includes('UUID')) return 'UUID';
+        if (t.includes('BOOL') || t === 'TINYINT') return 'BOOLEAN';
+        if (t.includes('INT') || t.includes('SERIAL')) return 'INT';
+        if (t.includes('JSON')) return 'JSONB';
+        if (t.includes('DEC') || t.includes('NUM') || t.includes('FLOAT') || t.includes('DOUBLE') || t.includes('REAL') || t.includes('MONEY')) return 'DECIMAL';
+        if (t.includes('TIME') || t.includes('DATE')) return 'TIMESTAMP';
+        if (t.includes('TEXT') || t.includes('CLOB')) return 'TEXT';
+        return 'VARCHAR';
+      }
+
+      function splitTopLevelCommas(str) {
+        const parts = [];
+        let depth = 0, current = '', inSingle = false, inDouble = false;
+        for (let i = 0; i < str.length; i++) {
+          const ch = str[i];
+          if (ch === "'" && !inDouble) inSingle = !inSingle;
+          else if (ch === '"' && !inSingle) inDouble = !inDouble;
+          else if (!inSingle && !inDouble) {
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            else if (ch === ',' && depth === 0) {
+              parts.push(current.trim());
+              current = '';
+              continue;
+            }
+          }
+          current += ch;
+        }
+        if (current.trim()) parts.push(current.trim());
+        return parts;
+      }
+
+      function stripQuotes(ident) {
+        return (ident || '').trim().replace(/^[`"\[]|[`"\]]$/g, '').split('.').pop().replace(/^[`"\[]|[`"\]]$/g, '');
+      }
+
+      function parseSqlDDL(sqlText) {
+        // Strip comments
+        const cleaned = sqlText
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/--[^\n]*/g, '');
+
+        const tables = [];
+        const pendingFKs = [];
+
+        // Find CREATE TABLE statements with balanced parentheses
+        const createRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([^\s(]+)\s*\(/gi;
+        let match;
+        while ((match = createRegex.exec(cleaned)) !== null) {
+          const tableName = stripQuotes(match[1]);
+          let startIdx = match.index + match[0].length;
+          let depth = 1;
+          let i = startIdx;
+          while (i < cleaned.length && depth > 0) {
+            if (cleaned[i] === '(') depth++;
+            else if (cleaned[i] === ')') depth--;
+            i++;
+          }
+          const body = cleaned.slice(startIdx, i - 1);
+          const items = splitTopLevelCommas(body);
+
+          const table = {
+            id: uid('tbl'),
+            name: tableName,
+            color: TABLE_COLORS[tables.length % TABLE_COLORS.length],
+            x: 80 + (tables.length % 3) * 380,
+            y: 80 + Math.floor(tables.length / 3) * 280,
+            columns: []
+          };
+
+          items.forEach(item => {
+            if (!item) return;
+            const upper = item.toUpperCase();
+
+            // Table-level PRIMARY KEY (col1, col2)
+            const pkMatch = item.match(/^(?:CONSTRAINT\s+\S+\s+)?PRIMARY\s+KEY\s*\(([^)]+)\)/i);
+            if (pkMatch) {
+              pkMatch[1].split(',').map(stripQuotes).forEach(pkCol => {
+                const c = table.columns.find(col => col.name.toLowerCase() === pkCol.toLowerCase());
+                if (c) { c.isPK = true; c.isNotNull = true; }
+              });
+              return;
+            }
+
+            // Table-level FOREIGN KEY (col) REFERENCES target(col)
+            const fkMatch = item.match(/^(?:CONSTRAINT\s+\S+\s+)?FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+([^\s(]+)\s*\(([^)]+)\)/i);
+            if (fkMatch) {
+              pendingFKs.push({
+                srcTable: table.name,
+                srcCol: stripQuotes(fkMatch[1].split(',')[0]),
+                tgtTable: stripQuotes(fkMatch[2]),
+                tgtCol: stripQuotes(fkMatch[3].split(',')[0])
+              });
+              return;
+            }
+
+            // Table-level UNIQUE (col)
+            const uqMatch = item.match(/^(?:CONSTRAINT\s+\S+\s+)?UNIQUE\s*(?:KEY|INDEX)?\s*(?:\S+\s*)?\(([^)]+)\)/i);
+            if (uqMatch) {
+              uqMatch[1].split(',').map(stripQuotes).forEach(uqCol => {
+                const c = table.columns.find(col => col.name.toLowerCase() === uqCol.toLowerCase());
+                if (c) c.isUnique = true;
+              });
+              return;
+            }
+
+            // Skip standalone INDEX / KEY / CHECK constraints
+            if (/^(KEY|INDEX|CHECK|CONSTRAINT)\b/i.test(upper)) return;
+
+            // Column definition: name type [constraints...]
+            const colMatch = item.match(/^([`"\[]?[a-zA-Z0-9_]+[`"\]]?)\s+([a-zA-Z0-9_]+(?:\s*\([^)]+\))?(?:\s+VARYING)?)(.*)$/i);
+            if (!colMatch) return;
+
+            const colName = stripQuotes(colMatch[1]);
+            const colType = normalizeSqlType(colMatch[2]);
+            const rest = colMatch[3] || '';
+
+            const isPK = /\bPRIMARY\s+KEY\b/i.test(rest);
+            const isNotNull = isPK || /\bNOT\s+NULL\b/i.test(rest);
+            const isUnique = /\bUNIQUE\b/i.test(rest);
+
+            let defaultValue = '';
+            const defMatch = rest.match(/\bDEFAULT\s+('(?:[^']|'')*'|[a-zA-Z0-9_().-]+)/i);
+            if (defMatch) defaultValue = defMatch[1];
+
+            // Inline REFERENCES target_table(target_col)
+            const inlineRef = rest.match(/\bREFERENCES\s+([^\s(]+)\s*\(([^)]+)\)/i);
+            if (inlineRef) {
+              pendingFKs.push({
+                srcTable: table.name,
+                srcCol: colName,
+                tgtTable: stripQuotes(inlineRef[1]),
+                tgtCol: stripQuotes(inlineRef[2])
+              });
+            }
+
+            table.columns.push({
+              id: uid('col'),
+              name: colName,
+              type: colType,
+              isPK,
+              isFK: !!inlineRef,
+              isNotNull,
+              isUnique,
+              defaultValue
+            });
+          });
+
+          if (table.columns.length > 0) {
+            tables.push(table);
+          }
+        }
+
+        // Also parse ALTER TABLE ... ADD FOREIGN KEY
+        const alterRegex = /ALTER\s+TABLE\s+([^\s;]+)\s+ADD\s+(?:CONSTRAINT\s+\S+\s+)?FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+([^\s(]+)\s*\(([^)]+)\)/gi;
+        while ((match = alterRegex.exec(cleaned)) !== null) {
+          pendingFKs.push({
+            srcTable: stripQuotes(match[1]),
+            srcCol: stripQuotes(match[2]),
+            tgtTable: stripQuotes(match[3]),
+            tgtCol: stripQuotes(match[4])
+          });
+        }
+
+        // Resolve relations
+        const relations = [];
+        pendingFKs.forEach(fk => {
+          const sT = tables.find(t => t.name.toLowerCase() === fk.srcTable.toLowerCase());
+          const tT = tables.find(t => t.name.toLowerCase() === fk.tgtTable.toLowerCase());
+          if (!sT || !tT) return;
+          const sC = sT.columns.find(c => c.name.toLowerCase() === fk.srcCol.toLowerCase());
+          const tC = tT.columns.find(c => c.name.toLowerCase() === fk.tgtCol.toLowerCase());
+          if (!sC || !tC) return;
+          sC.isFK = true;
+          relations.push({
+            id: uid('rel'),
+            sourceTableId: sT.id,
+            sourceColumnId: sC.id,
+            targetTableId: tT.id,
+            targetColumnId: tC.id,
+            cardinality: sC.isUnique ? '1:1' : '1:N'
+          });
+        });
+
+        return { tables, relations };
+      }
+
+      /* =====================================================================
+         15. STANDALONE SVG & HI-RES PNG EXPORTER
+         ===================================================================== */
+      function buildStandaloneSVG() {
+        const isDark = state.theme === 'dark';
+        const bg = isDark ? '#0b0f17' : '#f1f5f9';
+        const cardBg = isDark ? '#131b2b' : '#ffffff';
+        const cardBorder = isDark ? '#26334a' : '#cbd5e1';
+        const rowBorder = isDark ? '#1f2937' : '#e2e8f0';
+        const textPrimary = isDark ? '#f1f5f9' : '#0f172a';
+        const textMuted = isDark ? '#64748b' : '#64748b';
+        const relColor = isDark ? '#64748b' : '#94a3b8';
+        const pillBg = isDark ? '#182234' : '#ffffff';
+
+        const pad = 60;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        state.tables.forEach(t => {
+          const h = HEADER_HEIGHT + t.columns.length * ROW_HEIGHT + 8;
+          minX = Math.min(minX, t.x);
+          minY = Math.min(minY, t.y);
+          maxX = Math.max(maxX, t.x + TABLE_WIDTH);
+          maxY = Math.max(maxY, t.y + h);
+        });
+        if (!state.tables.length) {
+          minX = 0; minY = 0; maxX = 800; maxY = 500;
+        }
+        const width = Math.ceil(maxX - minX + pad * 2);
+        const height = Math.ceil(maxY - minY + pad * 2);
+        const ox = -minX + pad;
+        const oy = -minY + pad;
+
+        let relsSvg = '';
+        state.relations.forEach(rel => {
+          const geom = computeRelationGeometry(rel);
+          if (!geom) return;
+          const srcMany = rel.cardinality === '1:N' || rel.cardinality === 'N:M';
+          const tgtMany = rel.cardinality === 'N:M';
+
+          const markerStr = (x, y, dir, isMany) => {
+            if (isMany) {
+              const base = x + dir * 13;
+              return `<path d="M ${base} ${y} L ${x + dir * 1} ${y - 6.5} M ${base} ${y} L ${x + dir * 1} ${y + 6.5}" fill="none" stroke="${relColor}" stroke-width="2" stroke-linecap="round"/>
+                      <line x1="${x + dir * 14}" y1="${y - 5.5}" x2="${x + dir * 14}" y2="${y + 5.5}" stroke="${relColor}" stroke-width="2" stroke-linecap="round"/>`;
+            }
+            return `<line x1="${x + dir * 8}" y1="${y - 6}" x2="${x + dir * 8}" y2="${y + 6}" stroke="${relColor}" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="${x + dir * 13}" y1="${y - 6}" x2="${x + dir * 13}" y2="${y + 6}" stroke="${relColor}" stroke-width="2" stroke-linecap="round"/>`;
+          };
+
+          relsSvg += `
+            <path d="${geom.pathD}" fill="none" stroke="${relColor}" stroke-width="2" />
+            ${markerStr(geom.p1.x, geom.p1.y, geom.dir1, srcMany)}
+            ${markerStr(geom.p2.x, geom.p2.y, geom.dir2, tgtMany)}
+            <rect x="${geom.midX - 16}" y="${geom.midY - 9.5}" width="32" height="19" rx="9.5" fill="${pillBg}" stroke="${cardBorder}" stroke-width="1.2" />
+            <text x="${geom.midX}" y="${geom.midY + 3.5}" text-anchor="middle" fill="${textPrimary}" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600">${rel.cardinality}</text>
+          `;
+        });
+
+        let tablesSvg = '';
+        state.tables.forEach(t => {
+          const h = HEADER_HEIGHT + t.columns.length * ROW_HEIGHT + 4;
+          let rowsSvg = '';
+          t.columns.forEach((c, idx) => {
+            const ry = t.y + HEADER_HEIGHT + idx * ROW_HEIGHT;
+            let bx = t.x + 10;
+            let badgeSvg = '';
+            const addBadge = (lbl, bgCol, fgCol) => {
+              const bw = 20;
+              badgeSvg += `<rect x="${bx}" y="${ry + 9}" width="${bw}" height="14" rx="3" fill="${bgCol}" />
+                           <text x="${bx + bw / 2}" y="${ry + 19}" text-anchor="middle" fill="${fgCol}" font-family="Inter, -apple-system, sans-serif" font-size="8.5" font-weight="700">${lbl}</text>`;
+              bx += bw + 4;
+            };
+            if (c.isPK) addBadge('PK', 'rgba(245,158,11,0.2)', '#f59e0b');
+            if (c.isFK) addBadge('FK', 'rgba(6,182,212,0.2)', '#06b6d4');
+            if (c.isUnique && !c.isPK) addBadge('UQ', 'rgba(168,85,247,0.2)', '#a855f7');
+            if (c.isNotNull && !c.isPK) addBadge('NN', 'rgba(148,163,184,0.2)', '#94a3b8');
+
+            rowsSvg += `
+              <line x1="${t.x}" y1="${ry}" x2="${t.x + TABLE_WIDTH}" y2="${ry}" stroke="${rowBorder}" stroke-width="1" />
+              ${badgeSvg}
+              <text x="${bx + 2}" y="${ry + 20}" fill="${textPrimary}" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="500">${escapeHtml(c.name)}</text>
+              <text x="${t.x + TABLE_WIDTH - 10}" y="${ry + 20}" text-anchor="end" fill="${textMuted}" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10">${escapeHtml(c.type)}</text>
+            `;
+          });
+
+          tablesSvg += `
+            <g>
+              <rect x="${t.x}" y="${t.y}" width="${TABLE_WIDTH}" height="${h}" rx="10" fill="${cardBg}" stroke="${cardBorder}" stroke-width="1.5" />
+              <path d="M ${t.x + 10} ${t.y} H ${t.x + TABLE_WIDTH - 10} Q ${t.x + TABLE_WIDTH} ${t.y} ${t.x + TABLE_WIDTH} ${t.y + 10} V ${t.y + HEADER_HEIGHT} H ${t.x} V ${t.y + 10} Q ${t.x} ${t.y} ${t.x + 10} ${t.y} Z" fill="${t.color}" />
+              <text x="${t.x + 14}" y="${t.y + 23}" fill="#ffffff" font-family="Inter, -apple-system, sans-serif" font-size="12.5" font-weight="700">${escapeHtml(t.name)}</text>
+              ${rowsSvg}
+            </g>
+          `;
+        });
+
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="100%" height="100%" fill="${bg}" />
+  <g transform="translate(${ox}, ${oy})">
+    ${relsSvg}
+    ${tablesSvg}
+  </g>
+</svg>`;
+      }
+
+      function exportAsPNG() {
+        const svgStr = buildStandaloneSVG();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgStr, 'image/svg+xml');
+        const svgEl = doc.documentElement;
+        const w = parseInt(svgEl.getAttribute('width'), 10) || 1200;
+        const h = parseInt(svgEl.getAttribute('height'), 10) || 800;
+
+        const img = new Image();
+        img.onload = () => {
+          const scale = 2; // 2x HiDPI
+          const canvas = document.createElement('canvas');
+          canvas.width = w * scale;
+          canvas.height = h * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.scale(scale, scale);
+          ctx.drawImage(img, 0, 0);
+          try {
+            const dataUrl = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'schemaforge-diagram.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('Exported 2x HiDPI PNG image', 'success');
+          } catch (err) {
+            showToast('PNG export failed in this browser', 'error');
+          }
+        };
+        img.onerror = () => showToast('Failed to render PNG', 'error');
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+      }
+
+      /* =====================================================================
+         16. THEME, TABS & SIDEBAR MANAGEMENT
+         ===================================================================== */
+      function applyTheme(theme) {
+        state.theme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        dom.iconSun.classList.toggle('hidden', theme === 'light');
+        dom.iconMoon.classList.toggle('hidden', theme === 'dark');
+        saveToStorage();
+      }
+
+      function setActiveTab(tab) {
+        state.activeTab = tab;
+        const isEditor = tab === 'editor';
+        dom.panelEditor.classList.toggle('hidden', !isEditor);
+        dom.panelCode.classList.toggle('hidden', isEditor);
+
+        dom.tabEditor.style.borderColor = isEditor ? 'var(--accent)' : 'transparent';
+        dom.tabEditor.style.color = isEditor ? 'var(--text-primary)' : 'var(--text-muted)';
+        dom.tabCode.style.borderColor = !isEditor ? 'var(--accent)' : 'transparent';
+        dom.tabCode.style.color = !isEditor ? 'var(--text-primary)' : 'var(--text-muted)';
+
+        if (!isEditor) renderLiveCode();
+      }
+
+      function toggleSidebar(force) {
+        state.sidebarOpen = force !== undefined ? force : !state.sidebarOpen;
+        dom.sidebar.classList.toggle('hidden', !state.sidebarOpen);
+      }
+
+      function renderAll() {
+        renderCanvas();
+        renderInspector();
+        renderLiveCode();
+      }
+
+      /* =====================================================================
+         17. CANVAS INTERACTION (Pan, Zoom, Drag Table, Drag-to-Connect)
+         ===================================================================== */
+      function setupCanvasInteractions() {
+        // Mouse Wheel Zoom (centered on cursor)
+        dom.viewport.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const factor = e.deltaY < 0 ? 1.09 : 0.91;
+          zoomAt(factor, e.clientX, e.clientY);
+        }, { passive: false });
+
+        // Pointer Down on Viewport
+        dom.viewport.addEventListener('pointerdown', (e) => {
+          // Ignore if clicking floating popover
+          if (e.target.closest('#rel-popover')) return;
+
+          // 1. Middle-mouse or Space+Click => Pan
+          if (e.button === 1 || (e.button === 0 && interaction.spacePressed)) {
+            e.preventDefault();
+            startPan(e.clientX, e.clientY);
+            return;
+          }
+
+          if (e.button !== 0) return;
+
+          // 2. Port Handle => Drag-to-Connect
+          const portEl = e.target.closest('.port-handle');
+          if (portEl) {
+            e.stopPropagation();
+            const tId = portEl.dataset.portTable;
+            const cId = portEl.dataset.portCol;
+            const side = portEl.dataset.portSide;
+            const tbl = getTable(tId);
+            if (!tbl) return;
+            const start = getPortPosition(tbl, cId, side);
+            interaction.connecting = {
+              sourceTableId: tId,
+              sourceColumnId: cId,
+              side,
+              startX: start.x,
+              startY: start.y,
+              curX: start.x,
+              curY: start.y
+            };
+            dom.viewport.classList.add('is-connecting');
+            dom.dragPreview.classList.remove('hidden');
+            updateDragConnectPreview();
+            return;
+          }
+
+          // 3. Relationship Line Click
+          const relGroup = e.target.closest('.rel-group');
+          if (relGroup) {
+            e.stopPropagation();
+            selectRelation(relGroup.dataset.relId);
+            return;
+          }
+
+          // 4. Table Node Click / Drag
+          const tableNode = e.target.closest('.table-node');
+          if (tableNode) {
+            e.stopPropagation();
+            const tId = tableNode.dataset.tableId;
+            const tbl = getTable(tId);
+            if (!tbl) return;
+            if (state.selectedTableId !== tId) {
+              selectTable(tId);
+            }
+            interaction.draggingTableId = tId;
+            interaction.dragMoved = false;
+            interaction.dragStartMouseX = e.clientX;
+            interaction.dragStartMouseY = e.clientY;
+            interaction.dragStartTableX = tbl.x;
+            interaction.dragStartTableY = tbl.y;
+            tableNode.classList.add('is-dragging');
+            return;
+          }
+
+          // 5. Empty Canvas Background => Deselect & Start Pan
+          if (state.selectedTableId || state.selectedRelationId) {
+            state.selectedTableId = null;
+            state.selectedRelationId = null;
+            renderCanvas();
+            renderInspector();
+          }
+          startPan(e.clientX, e.clientY);
+        });
+
+        // Global Pointer Move
+        window.addEventListener('pointermove', (e) => {
+          if (interaction.isPanning) {
+            state.viewport.x = interaction.vpStartX + (e.clientX - interaction.panStartX);
+            state.viewport.y = interaction.vpStartY + (e.clientY - interaction.panStartY);
+            applyViewportTransform();
+            return;
+          }
+
+          if (interaction.draggingTableId) {
+            const tbl = getTable(interaction.draggingTableId);
+            if (!tbl) return;
+            const dx = (e.clientX - interaction.dragStartMouseX) / state.viewport.zoom;
+            const dy = (e.clientY - interaction.dragStartMouseY) / state.viewport.zoom;
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) interaction.dragMoved = true;
+            tbl.x = Math.round(interaction.dragStartTableX + dx);
+            tbl.y = Math.round(interaction.dragStartTableY + dy);
+
+            // Fast 60fps DOM update without re-rendering all tables
+            const nodeEl = dom.tablesLayer.querySelector(`.table-node[data-table-id="${tbl.id}"]`);
+            if (nodeEl) {
+              nodeEl.style.transform = `translate(${tbl.x}px, ${tbl.y}px)`;
+            }
+            renderRelations();
+            return;
+          }
+
+          if (interaction.connecting) {
+            const worldPt = screenToWorld(e.clientX, e.clientY);
+            interaction.connecting.curX = worldPt.x;
+            interaction.connecting.curY = worldPt.y;
+            updateDragConnectPreview();
+
+            // Highlight hovered drop target column row
+            document.querySelectorAll('.col-row.is-drop-target').forEach(el => el.classList.remove('is-drop-target'));
+            const hoveredRow = document.elementFromPoint(e.clientX, e.clientY)?.closest('.col-row');
+            if (hoveredRow && !(hoveredRow.dataset.tableId === interaction.connecting.sourceTableId && hoveredRow.dataset.colId === interaction.connecting.sourceColumnId)) {
+              hoveredRow.classList.add('is-drop-target');
+            }
+          }
+        });
+
+        // Global Pointer Up
+        window.addEventListener('pointerup', (e) => {
+          if (interaction.isPanning) {
+            interaction.isPanning = false;
+            dom.viewport.classList.remove('is-panning');
+          }
+
+          if (interaction.draggingTableId) {
+            const nodeEl = dom.tablesLayer.querySelector(`.table-node[data-table-id="${interaction.draggingTableId}"]`);
+            if (nodeEl) nodeEl.classList.remove('is-dragging');
+            interaction.draggingTableId = null;
+            if (interaction.dragMoved) {
+              pushHistory();
+            }
+          }
+
+          if (interaction.connecting) {
+            const conn = interaction.connecting;
+            interaction.connecting = null;
+            dom.viewport.classList.remove('is-connecting');
+            dom.dragPreview.classList.add('hidden');
+            document.querySelectorAll('.col-row.is-drop-target').forEach(el => el.classList.remove('is-drop-target'));
+
+            const dropEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.col-row');
+            if (dropEl) {
+              createRelationFromDrag(conn.sourceTableId, conn.sourceColumnId, dropEl.dataset.tableId, dropEl.dataset.colId);
+            }
+          }
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+          const tag = document.activeElement?.tagName;
+          const isEditingText = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+          if (e.code === 'Space' && !isEditingText) {
+            interaction.spacePressed = true;
+            dom.viewport.style.cursor = 'grab';
+          }
+
+          if ((e.ctrlKey || e.metaKey) && !isEditingText) {
+            if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+              e.preventDefault();
+              undo();
+            } else if (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey)) {
+              e.preventDefault();
+              redo();
+            }
+          }
+
+          if ((e.key === 'Delete' || e.key === 'Backspace') && !isEditingText) {
+            if (state.selectedRelationId) {
+              e.preventDefault();
+              deleteRelation(state.selectedRelationId);
+            } else if (state.selectedTableId) {
+              e.preventDefault();
+              deleteTable(state.selectedTableId);
+            }
+          }
+
+          if (e.key === 'Escape') {
+            dom.modalImportSql.classList.add('hidden');
+            dom.modalExport.classList.add('hidden');
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          if (e.code === 'Space') {
+            interaction.spacePressed = false;
+            dom.viewport.style.cursor = '';
+          }
+        });
+      }
+
+      function startPan(clientX, clientY) {
+        interaction.isPanning = true;
+        interaction.panStartX = clientX;
+        interaction.panStartY = clientY;
+        interaction.vpStartX = state.viewport.x;
+        interaction.vpStartY = state.viewport.y;
+        dom.viewport.classList.add('is-panning');
+      }
+
+      function updateDragConnectPreview() {
+        const c = interaction.connecting;
+        if (!c) return;
+        const dir = c.side === 'right' ? 1 : -1;
+        const dx = Math.max(45, Math.abs(c.curX - c.startX) * 0.45);
+        const d = `M ${c.startX} ${c.startY} C ${c.startX + dir * dx} ${c.startY}, ${c.curX - dir * dx} ${c.curY}, ${c.curX} ${c.curY}`;
+        dom.dragPreview.setAttribute('d', d);
+      }
+
+      /* =====================================================================
+         18. TOOLBAR, SIDEBAR & MODAL EVENT WIRING
+         ===================================================================== */
+      function loadTemplate(key, silent = false) {
+        const templates = buildTemplates();
+        const tpl = templates[key] || templates.saas;
+        state.tables = JSON.parse(JSON.stringify(tpl.tables));
+        state.relations = JSON.parse(JSON.stringify(tpl.relations));
+        state.selectedTableId = null;
+        state.selectedRelationId = null;
+        state.currentTemplate = key;
+        dom.templateSelect.value = key;
+        pushHistory();
+        renderAll();
+        fitToViewport();
+        if (!silent) showToast(`Loaded "${tpl.name}" template`, 'success');
+      }
+
+      function setupUIEvents() {
+        // Template switcher
+        dom.templateSelect.addEventListener('change', (e) => {
+          loadTemplate(e.target.value);
+        });
+
+        // Toolbar buttons
+        dom.btnAddTable.addEventListener('click', addNewTable);
+        dom.btnAutoLayout.addEventListener('click', autoLayout);
+        dom.btnUndo.addEventListener('click', undo);
+        dom.btnRedo.addEventListener('click', redo);
+
+        // Zoom controls
+        dom.btnZoomIn.addEventListener('click', () => zoomAt(1.18));
+        dom.btnZoomOut.addEventListener('click', () => zoomAt(0.84));
+        dom.btnZoomFit.addEventListener('click', () => fitToViewport());
+        dom.btnZoomInM?.addEventListener('click', () => zoomAt(1.18));
+        dom.btnZoomOutM?.addEventListener('click', () => zoomAt(0.84));
+        dom.btnZoomFitM?.addEventListener('click', () => fitToViewport());
+
+        // Theme & Sidebar
+        dom.btnTheme.addEventListener('click', () => {
+          applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+        });
+        dom.btnToggleSidebar.addEventListener('click', () => toggleSidebar());
+
+        // Tabs
+        dom.tabEditor.addEventListener('click', () => setActiveTab('editor'));
+        dom.tabCode.addEventListener('click', () => setActiveTab('code'));
+
+        // Dialect Switcher
+        document.querySelectorAll('.dialect-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.dialect = btn.dataset.dialect;
+            saveToStorage();
+            renderLiveCode();
+          });
+        });
+
+        // Copy & Download Live Code
+        dom.btnCopyCode.addEventListener('click', () => {
+          copyToClipboard(generateSchemaCode(state.dialect));
+        });
+        dom.btnDownloadCode.addEventListener('click', () => {
+          const code = generateSchemaCode(state.dialect);
+          const filename = dom.codeFilename.textContent || 'schema.sql';
+          downloadFile(code, filename);
+          showToast(`Downloaded ${filename}`, 'success');
+        });
+
+        // Floating Relation Popover
+        dom.relPopover.querySelectorAll('.rel-pop-card').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const rel = getRelation(state.selectedRelationId);
+            if (!rel) return;
+            rel.cardinality = btn.dataset.card;
+            pushHistory();
+            renderRelations();
+            renderInspector();
+            renderLiveCode();
+          });
+        });
+        dom.relPopDelete.addEventListener('click', () => {
+          if (state.selectedRelationId) deleteRelation(state.selectedRelationId);
+        });
+
+        // Modals Open/Close
+        dom.btnImportSql.addEventListener('click', () => {
+          dom.importSqlError.classList.add('hidden');
+          dom.modalImportSql.classList.remove('hidden');
+          dom.importSqlTextarea.focus();
+        });
+        dom.btnExport.addEventListener('click', () => {
+          dom.modalExport.classList.remove('hidden');
+        });
+        document.querySelectorAll('[data-close-modal]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.getElementById(btn.dataset.closeModal)?.classList.add('hidden');
+          });
+        });
+        [dom.modalImportSql, dom.modalExport].forEach(modal => {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+          });
+        });
+
+        // Import SQL Actions
+        dom.btnLoadExampleSql.addEventListener('click', () => {
+          dom.importSqlTextarea.value = `CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(120) NOT NULL,
+  is_archived BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE sprints (
+  id INT PRIMARY KEY,
+  project_id UUID NOT NULL REFERENCES projects(id),
+  title VARCHAR(100) NOT NULL,
+  start_date TIMESTAMP NOT NULL
+);
+
+CREATE TABLE tasks (
+  id UUID PRIMARY KEY,
+  sprint_id INT REFERENCES sprints(id),
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  story_points INT DEFAULT 3,
+  metadata JSONB
+);`;
+        });
+
+        dom.btnConfirmImportSql.addEventListener('click', () => {
+          const sql = dom.importSqlTextarea.value.trim();
+          if (!sql) {
+            dom.importSqlError.textContent = 'Please paste one or more CREATE TABLE SQL statements.';
+            dom.importSqlError.classList.remove('hidden');
+            return;
+          }
+          const result = parseSqlDDL(sql);
+          if (!result.tables.length) {
+            dom.importSqlError.textContent = 'No valid CREATE TABLE statements found. Check your SQL syntax.';
+            dom.importSqlError.classList.remove('hidden');
+            return;
+          }
+          state.tables = result.tables;
+          state.relations = result.relations;
+          state.selectedTableId = null;
+          state.selectedRelationId = null;
+          dom.modalImportSql.classList.add('hidden');
+          autoLayout();
+          renderInspector();
+          renderLiveCode();
+          showToast(`Imported ${result.tables.length} tables & ${result.relations.length} relations`, 'success');
+        });
+
+        // Export Modal Actions
+        dom.btnExportPng.addEventListener('click', exportAsPNG);
+        dom.btnExportSvg.addEventListener('click', () => {
+          downloadFile(buildStandaloneSVG(), 'schemaforge-diagram.svg', 'image/svg+xml;charset=utf-8');
+          showToast('Exported SVG vector diagram', 'success');
+        });
+        dom.btnExportJson.addEventListener('click', () => {
+          const data = JSON.stringify({
+            app: 'SchemaForge Studio',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            tables: state.tables,
+            relations: state.relations
+          }, null, 2);
+          downloadFile(data, 'schemaforge-project.json', 'application/json;charset=utf-8');
+          showToast('Exported project JSON', 'success');
+        });
+        dom.inputImportJson.addEventListener('change', (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const parsed = JSON.parse(reader.result);
+              if (!Array.isArray(parsed.tables) || !Array.isArray(parsed.relations)) {
+                throw new Error('Invalid project structure');
+              }
+              state.tables = parsed.tables;
+              state.relations = parsed.relations;
+              state.selectedTableId = null;
+              state.selectedRelationId = null;
+              dom.modalExport.classList.add('hidden');
+              pushHistory();
+              renderAll();
+              fitToViewport();
+              showToast(`Imported ${parsed.tables.length} tables from JSON`, 'success');
+            } catch (err) {
+              showToast('Invalid SchemaForge JSON file', 'error');
+            }
+            dom.inputImportJson.value = '';
+          };
+          reader.readAsText(file);
+        });
+
+        document.querySelectorAll('[data-export-dialect]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const d = btn.dataset.exportDialect;
+            const code = generateSchemaCode(d);
+            const filename = d === 'prisma' ? 'schema.prisma' : `schema.${d}.sql`;
+            downloadFile(code, filename);
+            showToast(`Downloaded ${filename}`, 'success');
+          });
+        });
+
+        // Responsive sidebar behavior on initial small screens
+        if (window.innerWidth < 768) {
+          toggleSidebar(false);
+        }
+      }
+
+      /* =====================================================================
+         19. INITIALIZATION
+         ===================================================================== */
+      function init() {
+        setupCanvasInteractions();
+        setupUIEvents();
+
+        const loaded = loadFromStorage();
+        applyTheme(state.theme);
+        setActiveTab('editor');
+
+        if (loaded && state.tables.length > 0) {
+          dom.templateSelect.value = state.currentTemplate || 'saas';
+          pushHistory();
+          renderAll();
+          requestAnimationFrame(() => fitToViewport());
+        } else {
+          loadTemplate('saas', true);
+          requestAnimationFrame(() => fitToViewport());
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
